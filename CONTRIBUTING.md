@@ -57,7 +57,7 @@ Pull requests should link the issue, explain user-visible behavior, identify com
 
 ## Releases and Packaging
 
-`brmgen` follows Semantic Versioning. Normal development moves from issue branches into `dev`; a fully validated milestone is promoted from `dev` to `main`, tagged as `vX.Y.Z`, and published as a GitHub Release. Do not create releases from feature branches or tag commits that are not part of `main`.
+`brmgen` follows Semantic Versioning. Normal development moves from issue branches into `dev`; a fully validated milestone is promoted from `dev` to `main` and tagged as `vX.Y.Z`. The release workflow verifies that the tag is reachable from `main`, matches the Gradle version, passes the normal checks, and publishes application archives with SHA-256 checksums. A published stable release then starts the isolated AUR workflow. Do not create releases from feature branches or tag commits that are not part of `main`.
 
 Distribution changes must keep release artifacts reproducible from the tagged source, preserve checksums, and keep the external brModelo JAR outside every package. Never commit publishing credentials or private keys.
 

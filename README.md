@@ -71,6 +71,8 @@ Build an application distribution from source:
 
 The archive distributions are written to `build/distributions/` by `./gradlew build`.
 
+Official semantic-version releases provide application archives and SHA-256 checksums on the [GitHub Releases page](https://github.com/kristyancarvalho/brmgen/releases).
+
 ### Arch Linux
 
 Until the prepared AUR package receives its initial publication, build the checked-in package definition directly:
@@ -232,6 +234,7 @@ Native integration tests deserialize only files generated inside the test run. T
 | `.github/` | Issue templates and GitHub Actions workflows |
 | `examples/` | Representative conceptual and logical definitions |
 | `packaging/` | Arch Linux and AUR package definitions |
+| `scripts/` | Release-package synchronization utilities |
 | `src/main/` | Application source code |
 | `src/test/` | Unit and regular integration-facing tests |
 | `src/integrationTest/` | Tests requiring an explicitly supplied brModelo JAR |
