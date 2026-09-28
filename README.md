@@ -10,6 +10,7 @@ The project is under active development. The CLI shell is available; parsing, va
 - [Features and Status](#features-and-status)
 - [Requirements](#requirements)
 - [Build](#build)
+- [Quick Start](#quick-start)
 - [CLI](#cli)
 - [Input Format](#input-format)
 - [Architecture](#architecture)
@@ -38,7 +39,7 @@ flowchart LR
 
 ## Features and Status
 
-The current development build provides the `build`, `validate`, `doctor`, and `version` command surface. Only `version` is functional in the initial bootstrap. Model parsing, semantic validation, deterministic layout, and native generation remain tracked work and unavailable commands return a non-zero status.
+The current development build parses YAML and JSON into its internal model and provides semantic validation through `validate`. Deterministic layout, native generation, and full runtime diagnostics remain tracked work; unavailable commands return a non-zero status.
 
 The first usable release will support entities, attributes, relationships, cardinalities, generalization/specialization, weak and identifying constructs, and explicit or automatic positions.
 
@@ -62,6 +63,16 @@ The application distribution is created under `build/distributions/`. During dev
 ./gradlew run --args='version'
 ```
 
+## Quick Start
+
+Validate the included YAML example:
+
+```bash
+./gradlew run --args='validate examples/library.yaml'
+```
+
+A valid model prints its normalized input path and exits with status `0`. Syntax, schema, and semantic errors are written to stderr with a non-zero status and stable diagnostic codes.
+
 ## CLI
 
 ```text
@@ -71,7 +82,7 @@ brmgen doctor [--brmodelo-jar <jar>]
 brmgen version
 ```
 
-The bootstrap exposes this interface so later components can integrate without changing command names. `build`, `validate`, and the full `doctor` check are not implemented yet.
+`validate` is functional. Native output from `build` and the full external-JAR inspection performed by `doctor` are not implemented yet.
 
 ## Input Format
 
@@ -89,7 +100,7 @@ entities:
       - name: name
 ```
 
-This format is documented as the target schema while parser work is in progress; the current bootstrap cannot validate it yet.
+The parser rejects unknown fields, inputs larger than 2 MiB, excessive nesting, unsupported extensions, and malformed syntax. Semantic validation currently covers schema version, names, references, relationship participation, attributes and flags, weak entities, identifying relationships, generalizations, cardinality presence, and coordinates.
 
 ## Architecture
 
