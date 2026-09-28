@@ -3,6 +3,9 @@ name: Publish AUR package
 on:
   release:
     types: [published]
+  workflow_run:
+    workflows: [Release]
+    types: [completed]
   workflow_dispatch:
     inputs:
       tag:
@@ -21,19 +24,43 @@ jobs:
   publish:
     if: >-
       github.repository == 'kristyancarvalho/brmgen' &&
-      (github.event_name == 'workflow_dispatch' || !github.event.release.prerelease)
+      (github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'release' && !github.event.release.prerelease) ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success'))
     runs-on: ubuntu-latest
     container: archlinux:base-devel
-    env:
-      RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.event.release.tag_name }}
     steps:
       - name: Prepare Arch environment
         run: |
-          pacman -Syu --noconfirm --needed git openssh curl jre21-openjdk
+          pacman -Syu --noconfirm --needed git openssh curl jq jre21-openjdk
           useradd --create-home --uid 1000 aurbuilder
+      - name: Resolve stable release
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REQUESTED_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.event.release.tag_name }}
+        run: |
+          tag=$REQUESTED_TAG
+          if [[ -n $tag ]]; then
+            [[ $tag =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+            endpoint="releases/tags/${tag}"
+          else
+            endpoint=releases/latest
+          fi
+          metadata=$(curl -fsSL --retry 3 --connect-timeout 15 \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/${endpoint}")
+          resolved=$(jq -er 'select(.draft == false and .prerelease == false) | .tag_name' <<<"$metadata")
+          [[ $resolved =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          if [[ -n $tag ]]; then
+            test "$tag" = "$resolved"
+          fi
+          printf 'tag=%s\n' "$resolved" >>"$GITHUB_OUTPUT"
+          printf 'RELEASE_TAG=%s\n' "$resolved" >>"$GITHUB_ENV"
       - uses: actions/checkout@v6
         with:
-          ref: ${{ env.RELEASE_TAG }}
+          ref: ${{ steps.release.outputs.tag }}
           fetch-depth: 0
           fetch-tags: true
       - name: Prepare publisher workspace
