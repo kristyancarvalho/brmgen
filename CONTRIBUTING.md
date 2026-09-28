@@ -55,6 +55,22 @@ test(layout): cover explicit coordinate precedence
 
 Pull requests should link the issue, explain user-visible behavior, identify compatibility or security effects, and list the checks run. Avoid unrelated refactoring. Update public documentation whenever commands, supported input, setup, or behavior change.
 
+## Releases and Packaging
+
+`brmgen` follows Semantic Versioning. Normal development moves from issue branches into `dev`; a fully validated milestone is promoted from `dev` to `main` and tagged as `vX.Y.Z`. The release workflow verifies that the tag is reachable from `main`, matches the Gradle version, passes the normal checks, and publishes application archives with SHA-256 checksums. A published stable release then starts the isolated AUR workflow. Do not create releases from feature branches or tag commits that are not part of `main`.
+
+Distribution changes must keep release artifacts reproducible from the tagged source, preserve checksums, and keep the external brModelo JAR outside every package. Never commit publishing credentials or private keys.
+
+Validate Arch package changes on Arch Linux from `packaging/aur/`:
+
+```bash
+makepkg --printsrcinfo
+makepkg --syncdeps --cleanbuild --clean --noconfirm
+namcap PKGBUILD brmgen-*.pkg.tar.zst
+```
+
+Regenerate `.SRCINFO` whenever PKGBUILD metadata changes.
+
 ## Definition of Done
 
 A change is complete when its acceptance criteria are met, relevant tests and regression coverage pass, `./gradlew check` and `./gradlew build` succeed, diagnostics are suitable for users, documentation is accurate, and no external binary, secret, generated output, or explanatory source comment was added.

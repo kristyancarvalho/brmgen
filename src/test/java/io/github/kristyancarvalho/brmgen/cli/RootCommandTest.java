@@ -45,6 +45,63 @@ class RootCommandTest {
   }
 
   @Test
+  void printsRootHelpForLongAndShortOptions() {
+    for (String option : new String[] {"--help", "-h"}) {
+      StringWriter output = new StringWriter();
+      CommandLine commandLine = new CommandLine(new RootCommand());
+      commandLine.setOut(new PrintWriter(output));
+
+      int exitCode = commandLine.execute(option);
+
+      assertThat(exitCode).isZero();
+      assertThat(output.toString())
+          .contains("Usage: brmgen")
+          .contains("build")
+          .contains("validate")
+          .contains("doctor")
+          .contains("--help")
+          .contains("--version")
+          .contains("brmgen COMMAND --help");
+    }
+  }
+
+  @Test
+  void printsBuildHelpWithEveryBuildOption() {
+    String help = help("build");
+
+    assertThat(help)
+        .contains("Usage: brmgen build")
+        .contains("<input>")
+        .contains("-o, --output")
+        .contains("--brmodelo-jar")
+        .contains("--logical")
+        .contains("BRMODELO_JAR")
+        .contains("Examples:");
+  }
+
+  @Test
+  void printsValidateHelp() {
+    String help = help("validate");
+
+    assertThat(help)
+        .contains("Usage: brmgen validate")
+        .contains("<input>")
+        .contains("without generating output")
+        .contains("Example:");
+  }
+
+  @Test
+  void printsDoctorHelp() {
+    String help = help("doctor");
+
+    assertThat(help)
+        .contains("Usage: brmgen doctor")
+        .contains("--brmodelo-jar")
+        .contains("BRMODELO_JAR")
+        .contains("Example:");
+  }
+
+  @Test
   void validatesAValidModel() throws Exception {
     Path input =
         Files.writeString(
@@ -123,5 +180,16 @@ class RootCommandTest {
 
     assertThat(exitCode).isEqualTo(1);
     assertThat(error.toString()).contains("error[E206]").doesNotContain("Exception");
+  }
+
+  private String help(String command) {
+    StringWriter output = new StringWriter();
+    CommandLine commandLine = new CommandLine(new RootCommand());
+    commandLine.setOut(new PrintWriter(output));
+
+    int exitCode = commandLine.execute(command, "--help");
+
+    assertThat(exitCode).isZero();
+    return output.toString();
   }
 }
