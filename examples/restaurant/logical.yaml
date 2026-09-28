@@ -1,0 +1,78 @@
+version: 1
+model:
+  type: logical
+  name: Restaurante e Pedidos
+tables:
+  - name: Restaurante
+    position: {x: 60, y: 240}
+    columns:
+      - {name: id_restaurante, type: integer, primaryKey: true}
+      - {name: nome, type: varchar}
+      - {name: endereco, type: varchar}
+      - {name: telefone, type: varchar}
+  - name: Prato
+    position: {x: 380, y: 240}
+    columns:
+      - {name: id_prato, type: integer, primaryKey: true}
+      - {name: nome, type: varchar}
+      - {name: preco, type: decimal}
+      - {name: descricao, type: varchar}
+      - {name: fk_Restaurante_id_restaurante, type: integer}
+    foreignKeys:
+      - columns: [fk_Restaurante_id_restaurante]
+        references: {table: Restaurante, columns: [id_restaurante]}
+  - name: Cliente
+    position: {x: 1020, y: 60}
+    columns:
+      - {name: cpf, type: varchar, primaryKey: true}
+      - {name: nome, type: varchar}
+      - {name: telefone, type: varchar}
+      - {name: endereco, type: varchar}
+  - name: Pedido
+    position: {x: 1020, y: 340}
+    columns:
+      - {name: id_pedido, type: integer, primaryKey: true}
+      - {name: data, type: date}
+      - {name: hora, type: time}
+      - {name: status, type: varchar}
+      - {name: valor_total, type: decimal}
+      - {name: fk_Cliente_cpf, type: varchar}
+    foreignKeys:
+      - columns: [fk_Cliente_cpf]
+        references: {table: Cliente, columns: [cpf]}
+  - name: Contem
+    position: {x: 700, y: 300}
+    columns:
+      - {name: fk_Prato_id_prato, type: integer}
+      - {name: fk_Pedido_id_pedido, type: integer}
+      - {name: quantidade, type: integer}
+      - {name: observacao, type: varchar}
+    primaryKey:
+      columns: [fk_Prato_id_prato, fk_Pedido_id_pedido]
+    foreignKeys:
+      - columns: [fk_Prato_id_prato]
+        references: {table: Prato, columns: [id_prato]}
+      - columns: [fk_Pedido_id_pedido]
+        localCardinality: 0..n
+        referencedCardinality: 0..1
+        references: {table: Pedido, columns: [id_pedido]}
+  - name: Forma_pagamento
+    position: {x: 380, y: 680}
+    columns:
+      - {name: id_forma, type: integer, primaryKey: true}
+      - {name: descricao, type: varchar}
+  - name: Pagamento
+    position: {x: 800, y: 680}
+    columns:
+      - {name: id_pagamento, type: integer, primaryKey: true}
+      - {name: data_pagamento, type: date}
+      - {name: valor, type: decimal}
+      - {name: status, type: varchar}
+      - {name: fk_Pedido_id_pedido, type: integer}
+      - {name: fk_Forma_pagamento_id_forma, type: integer}
+    foreignKeys:
+      - columns: [fk_Pedido_id_pedido]
+        references: {table: Pedido, columns: [id_pedido]}
+      - columns: [fk_Forma_pagamento_id_forma]
+        localCardinality: 0..n
+        references: {table: Forma_pagamento, columns: [id_forma]}
