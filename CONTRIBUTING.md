@@ -26,6 +26,7 @@ Useful focused commands are:
 ./gradlew spotlessApply
 ./gradlew spotlessCheck
 ./gradlew run --args='version'
+BRMODELO_JAR=/path/to/brModelo.jar ./gradlew integrationTest
 ```
 
 ## Development Workflow

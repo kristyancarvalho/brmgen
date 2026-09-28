@@ -6,8 +6,12 @@ import com.fasterxml.jackson.core.StreamReadConstraints;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import io.github.kristyancarvalho.brmgen.model.ConceptualModel;
+import io.github.kristyancarvalho.brmgen.model.LogicalModel;
 import io.github.kristyancarvalho.brmgen.model.ModelDefinition;
+import io.github.kristyancarvalho.brmgen.model.ModelType;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -40,13 +44,43 @@ public final class ModelParser {
     try (InputStream stream = Files.newInputStream(normalized)) {
       JsonNode root = mapper.readTree(stream);
       ensureVersion(root, normalized);
-      return mapper.treeToValue(root, ModelDefinition.class);
+      return parseModel(mapper, (ObjectNode) root, normalized);
     } catch (JsonProcessingException exception) {
       throw invalidContent(normalized, exception);
     } catch (IOException exception) {
       throw new ModelParseException(
           "error[E103]: cannot read `" + normalized + "`: " + exception.getMessage(), exception);
     }
+  }
+
+  private ModelDefinition parseModel(ObjectMapper mapper, ObjectNode root, Path input)
+      throws JsonProcessingException, ModelParseException {
+    JsonNode metadata = root.get("model");
+    if (metadata == null) {
+      return mapper.treeToValue(root, ConceptualModel.class);
+    }
+    if (!metadata.isObject() || !metadata.hasNonNull("type") || !metadata.hasNonNull("name")) {
+      throw new ModelParseException(
+          "error[E108]: `model.type` and `model.name` are required in `" + input + "`");
+    }
+    ModelType type;
+    try {
+      type = ModelType.parse(metadata.get("type").asText());
+    } catch (IllegalArgumentException exception) {
+      throw new ModelParseException(
+          "error[E108]: unsupported model type `"
+              + metadata.get("type").asText()
+              + "` in `"
+              + input
+              + "`; use conceptual or logical");
+    }
+    ObjectNode normalized = root.deepCopy();
+    normalized.remove("model");
+    ObjectNode diagram = normalized.putObject("diagram");
+    diagram.put("name", metadata.get("name").asText());
+    return type == ModelType.CONCEPTUAL
+        ? mapper.treeToValue(normalized, ConceptualModel.class)
+        : mapper.treeToValue(normalized, LogicalModel.class);
   }
 
   private ObjectMapper configure(ObjectMapper mapper) {

@@ -1,0 +1,6 @@
+version: 1
+model:
+  type: conceptual
+  name: Customers
+entities:
+  - name: Customer

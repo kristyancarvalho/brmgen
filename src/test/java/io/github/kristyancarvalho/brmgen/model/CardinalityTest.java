@@ -8,10 +8,16 @@ import org.junit.jupiter.params.provider.CsvSource;
 
 class CardinalityTest {
   @ParameterizedTest
-  @CsvSource({"0..1,ZERO_TO_ONE", "1,ONE", "1..n,ONE_TO_MANY", "0..n,ZERO_TO_MANY"})
+  @CsvSource({"0..1,ZERO_TO_ONE", "1..1,ONE", "1..n,ONE_TO_MANY", "0..n,ZERO_TO_MANY"})
   void parsesSupportedValues(String input, Cardinality expected) {
     assertThat(Cardinality.parse(input)).isEqualTo(expected);
     assertThat(expected.value()).isEqualTo(input);
+  }
+
+  @ParameterizedTest
+  @CsvSource({"1,ONE", "1..1,ONE"})
+  void acceptsLegacyAndExplicitOneToOneSyntax(String input, Cardinality expected) {
+    assertThat(Cardinality.parse(input)).isEqualTo(expected);
   }
 
   @ParameterizedTest
@@ -20,5 +26,14 @@ class CardinalityTest {
     assertThatIllegalArgumentException()
         .isThrownBy(() -> Cardinality.parse(input))
         .withMessageContaining(input);
+  }
+
+  @ParameterizedTest
+  @CsvSource({"0..1,0,false", "1..1,1,false", "1..n,1,true", "0..n,0,true"})
+  void exposesStructuredBounds(String input, int minimum, boolean many) {
+    Cardinality cardinality = Cardinality.parse(input);
+
+    assertThat(cardinality.minimum()).isEqualTo(minimum);
+    assertThat(cardinality.many()).isEqualTo(many);
   }
 }

@@ -1,0 +1,75 @@
+version: 1
+model:
+  type: conceptual
+  name: Restaurante e Pedidos
+entities:
+  - name: Restaurante
+    position: {x: 60, y: 260}
+    attributes:
+      - {name: id_restaurante, key: true}
+      - {name: nome}
+      - {name: endereco}
+      - {name: telefone}
+  - name: Prato
+    position: {x: 500, y: 260}
+    attributes:
+      - {name: id_prato, key: true}
+      - {name: nome}
+      - {name: preco}
+      - {name: descricao}
+  - name: Cliente
+    position: {x: 1380, y: 80}
+    attributes:
+      - {name: cpf, key: true}
+      - {name: nome}
+      - {name: telefone}
+      - {name: endereco}
+  - name: Pedido
+    position: {x: 1380, y: 420}
+    attributes:
+      - {name: id_pedido, key: true}
+      - {name: data}
+      - {name: hora}
+      - {name: status}
+      - {name: valor_total}
+  - name: Pagamento
+    position: {x: 1000, y: 760}
+    attributes:
+      - {name: id_pagamento, key: true}
+      - {name: data_pagamento}
+      - {name: valor}
+      - {name: status}
+  - name: Forma_pagamento
+    position: {x: 420, y: 760}
+    attributes:
+      - {name: id_forma, key: true}
+      - {name: descricao}
+relationships:
+  - name: Oferece
+    position: {x: 300, y: 260}
+    connections:
+      - {entity: Restaurante, cardinality: 1..1}
+      - {entity: Prato, cardinality: 1..n}
+  - name: Contem
+    position: {x: 940, y: 260}
+    attributes:
+      - {name: quantidade}
+      - {name: observacao}
+    connections:
+      - {entity: Prato, cardinality: 1..n}
+      - {entity: Pedido, cardinality: 0..n}
+  - name: Realiza
+    position: {x: 1380, y: 250}
+    connections:
+      - {entity: Cliente, cardinality: 1..1}
+      - {entity: Pedido, cardinality: 1..n}
+  - name: Possui
+    position: {x: 1240, y: 620}
+    connections:
+      - {entity: Pedido, cardinality: 1..1}
+      - {entity: Pagamento, cardinality: 1..n}
+  - name: Utiliza
+    position: {x: 700, y: 760}
+    connections:
+      - {entity: Forma_pagamento, cardinality: 1..1}
+      - {entity: Pagamento, cardinality: 0..n}

@@ -91,4 +91,37 @@ class RootCommandTest {
     assertThat(exitCode).isEqualTo(1);
     assertThat(error.toString()).contains("error[E107]").doesNotContain("Exception");
   }
+
+  @Test
+  void doctorReportsAnIncompatibleJarWithoutAStackTrace() throws Exception {
+    Path jar = Files.createFile(temporaryDirectory.resolve("unrelated.jar"));
+    StringWriter output = new StringWriter();
+    StringWriter error = new StringWriter();
+    CommandLine commandLine = new CommandLine(new RootCommand());
+    commandLine.setOut(new PrintWriter(output));
+    commandLine.setErr(new PrintWriter(error));
+
+    int exitCode = commandLine.execute("doctor", "--brmodelo-jar", jar.toString());
+
+    assertThat(exitCode).isEqualTo(1);
+    assertThat(output.toString()).contains("Java runtime: 21").contains("brModelo JAR:");
+    assertThat(error.toString()).contains("error[E204]").doesNotContain("Exception");
+  }
+
+  @Test
+  void buildRefusesToOverwriteAnExistingOutput() throws Exception {
+    Path input =
+        Files.writeString(
+            temporaryDirectory.resolve("entity.yaml"),
+            "version: 1\ndiagram:\n  name: Entity\nentities:\n  - name: Customer\n");
+    Path output = Files.createFile(temporaryDirectory.resolve("entity.brM3"));
+    StringWriter error = new StringWriter();
+    CommandLine commandLine = new CommandLine(new RootCommand());
+    commandLine.setErr(new PrintWriter(error));
+
+    int exitCode = commandLine.execute("build", input.toString(), "-o", output.toString());
+
+    assertThat(exitCode).isEqualTo(1);
+    assertThat(error.toString()).contains("error[E206]").doesNotContain("Exception");
+  }
 }

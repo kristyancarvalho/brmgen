@@ -1,0 +1,27 @@
+version: 1
+model:
+  type: logical
+  name: Library
+tables:
+  - name: Author
+    columns:
+      - name: id
+        type: integer
+        primaryKey: true
+      - name: name
+        type: varchar
+  - name: Book
+    columns:
+      - name: id
+        type: integer
+        primaryKey: true
+      - name: author_id
+        type: integer
+    primaryKey:
+      columns: [id]
+    foreignKeys:
+      - name: fk_book_author
+        columns: [author_id]
+        references:
+          table: Author
+          columns: [id]

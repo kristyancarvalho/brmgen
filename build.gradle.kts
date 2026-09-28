@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "io.github.kristyancarvalho.brmgen"
-version = "0.1.0-SNAPSHOT"
+version = "0.3.0"
 
 repositories {
     mavenCentral()
@@ -22,6 +22,17 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
+val integrationTestSourceSet = sourceSets.create("integrationTest")
+
+dependencies {
+    add(integrationTestSourceSet.implementationConfigurationName, sourceSets.main.get().output)
+}
+
+configurations[integrationTestSourceSet.implementationConfigurationName]
+    .extendsFrom(configurations.testImplementation.get())
+configurations[integrationTestSourceSet.runtimeOnlyConfigurationName]
+    .extendsFrom(configurations.testRuntimeOnly.get())
+
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
@@ -35,6 +46,20 @@ application {
 
 tasks.test {
     useJUnitPlatform()
+}
+
+tasks.register<Test>("integrationTest") {
+    description = "Runs tests against an explicitly supplied brModelo JAR."
+    group = LifecycleBasePlugin.VERIFICATION_GROUP
+    testClassesDirs = integrationTestSourceSet.output.classesDirs
+    classpath = integrationTestSourceSet.runtimeClasspath
+    useJUnitPlatform()
+    shouldRunAfter(tasks.test)
+    doFirst {
+        if (System.getenv("BRMODELO_JAR").isNullOrBlank()) {
+            throw GradleException("BRMODELO_JAR must point to a compatible local brModelo JAR")
+        }
+    }
 }
 
 tasks.jar {
