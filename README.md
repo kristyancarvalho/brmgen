@@ -13,6 +13,7 @@ The project is under active development. The CLI shell is available; parsing, va
 - [Quick Start](#quick-start)
 - [CLI](#cli)
 - [Input Format](#input-format)
+- [Supported Modeling Features](#supported-modeling-features)
 - [Architecture](#architecture)
 - [brModelo Compatibility](#brmodelo-compatibility)
 - [Development and Testing](#development-and-testing)
@@ -39,7 +40,7 @@ flowchart LR
 
 ## Features and Status
 
-The current development build parses YAML and JSON into its internal model and provides semantic validation through `validate`. Deterministic layout, native generation, and full runtime diagnostics remain tracked work; unavailable commands return a non-zero status.
+The current development build parses YAML and JSON, provides semantic validation through `validate`, and includes deterministic manual/automatic layout for the generation pipeline. Native generation and full runtime diagnostics remain tracked work; unavailable commands return a non-zero status.
 
 The first usable release will support entities, attributes, relationships, cardinalities, generalization/specialization, weak and identifying constructs, and explicit or automatic positions.
 
@@ -101,6 +102,30 @@ entities:
 ```
 
 The parser rejects unknown fields, inputs larger than 2 MiB, excessive nesting, unsupported extensions, and malformed syntax. Semantic validation currently covers schema version, names, references, relationship participation, attributes and flags, weak entities, identifying relationships, generalizations, cardinality presence, and coordinates.
+
+Optional manual coordinates use non-negative integers:
+
+```yaml
+position:
+  x: 100
+  y: 200
+```
+
+Manual positions take precedence. Missing entity positions are assigned on a deterministic grid, while relationships and generalizations are placed relative to their participants.
+
+## Supported Modeling Features
+
+The parser, internal model, validator, and layout support:
+
+- regular and weak entities;
+- simple, key, partial-key, composite, multivalued, and derived attributes;
+- binary and n-ary relationships with relationship attributes;
+- identifying relationships;
+- cardinalities `0..1`, `1`, `1..n`, and `0..n`;
+- total/partial and disjoint/overlapping generalization data;
+- manual and deterministic automatic positions.
+
+These features are not yet writable to `.brM3`; native mapping remains adapter work requiring a user-supplied brModelo JAR.
 
 ## Architecture
 
