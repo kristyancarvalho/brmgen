@@ -2,7 +2,7 @@
 
 `brmgen` is a small command-line application for turning versionable YAML or JSON conceptual-model definitions into native, editable brModelo desktop `.brM3` files.
 
-The project is under active development. The CLI shell is available; parsing, validation, layout, and native generation are being delivered incrementally. Commands that are not implemented fail explicitly and do not create output.
+The project is under active development. Parsing, validation, layout, runtime checks, and minimal native generation are available; broader conceptual mapping is being delivered incrementally.
 
 ## Table of Contents
 
@@ -40,7 +40,7 @@ flowchart LR
 
 ## Features and Status
 
-The current development build parses YAML and JSON, provides semantic validation through `validate`, and includes deterministic manual/automatic layout for the generation pipeline. Native generation and full runtime diagnostics remain tracked work; unavailable commands return a non-zero status.
+The current development build parses YAML and JSON, provides semantic validation through `validate`, includes deterministic layout, and generates native entity-only `.brM3` files with a user-supplied compatible brModelo JAR. Mapping attributes, relationships, and generalizations remains tracked work; unsupported native constructs fail explicitly.
 
 The first usable release will support entities, attributes, relationships, cardinalities, generalization/specialization, weak and identifying constructs, and explicit or automatic positions.
 
@@ -48,7 +48,7 @@ The first usable release will support entities, attributes, relationships, cardi
 
 - A Java runtime capable of launching Gradle 9.1 or newer
 - Network access on the first build to resolve the Java 21 toolchain and dependencies
-- A compatible local brModelo JAR for native generation and integration tests when those features become available
+- A compatible local brModelo 3.3.x JAR for native generation and integration tests
 
 The Gradle build compiles and tests with Java 21. The Wrapper provisions the toolchain when no matching local JDK is present.
 
@@ -74,6 +74,15 @@ Validate the included YAML example:
 
 A valid model prints its normalized input path and exits with status `0`. Syntax, schema, and semantic errors are written to stderr with a non-zero status and stable diagnostic codes.
 
+Check a local brModelo runtime and generate the entity-only example:
+
+```bash
+./gradlew run --args='doctor --brmodelo-jar /path/to/brModelo.jar'
+./gradlew run --args='build examples/single-entity.yaml --brmodelo-jar /path/to/brModelo.jar'
+```
+
+The output defaults to the input path with a `.brM3` extension. Existing files are never overwritten.
+
 ## CLI
 
 ```text
@@ -83,7 +92,7 @@ brmgen doctor [--brmodelo-jar <jar>]
 brmgen version
 ```
 
-`validate` is functional. Native output from `build` and the full external-JAR inspection performed by `doctor` are not implemented yet.
+`validate`, `doctor`, and entity-only `build` are functional. `--brmodelo-jar` takes precedence over `BRMODELO_JAR`.
 
 ## Input Format
 
@@ -125,7 +134,7 @@ The parser, internal model, validator, and layout support:
 - total/partial and disjoint/overlapping generalization data;
 - manual and deterministic automatic positions.
 
-These features are not yet writable to `.brM3`; native mapping remains adapter work requiring a user-supplied brModelo JAR.
+All listed features are available to parsing and validation. Native `.brM3` mapping currently accepts only regular entities without attributes; other constructs produce an explicit unsupported-mapping diagnostic.
 
 ## Architecture
 
@@ -143,9 +152,10 @@ brModelo is a separate GPL-3.0 project. Its source and binaries are not part of,
 ./gradlew test
 ./gradlew spotlessCheck
 ./gradlew check
+BRMODELO_JAR=/path/to/brModelo.jar ./gradlew integrationTest
 ```
 
-`check` includes the unit tests and formatting verification. Native integration tests will be isolated from normal tests because they require a user-supplied brModelo JAR.
+`check` includes unit tests and formatting verification. `integrationTest` is separate, requires `BRMODELO_JAR`, generates a native file, deserializes it through the selected runtime, and verifies its entity structure.
 
 ## Project Structure
 
@@ -153,6 +163,7 @@ brModelo is a separate GPL-3.0 project. Its source and binaries are not part of,
 .github/       issue templates and CI
 src/main/      application code
 src/test/      unit and integration-facing tests
+src/integrationTest/ tests requiring a local brModelo JAR
 examples/      representative model definitions
 schemas/       published input schemas
 ```
