@@ -4,10 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.github.kristyancarvalho.brmgen.model.Attribute;
 import io.github.kristyancarvalho.brmgen.model.Cardinality;
+import io.github.kristyancarvalho.brmgen.model.ConceptualModel;
 import io.github.kristyancarvalho.brmgen.model.Connection;
 import io.github.kristyancarvalho.brmgen.model.Diagram;
 import io.github.kristyancarvalho.brmgen.model.Entity;
-import io.github.kristyancarvalho.brmgen.model.ModelDefinition;
 import io.github.kristyancarvalho.brmgen.model.Position;
 import io.github.kristyancarvalho.brmgen.model.Relationship;
 import java.io.InputStream;
@@ -26,8 +26,8 @@ class NativeBrm3WriterIntegrationTest {
   @Test
   void generatesAndLoadsANativeEntityDiagram() throws Exception {
     Path jar = Path.of(System.getenv("BRMODELO_JAR")).toAbsolutePath().normalize();
-    ModelDefinition model =
-        new ModelDefinition(
+    ConceptualModel model =
+        new ConceptualModel(
             1,
             new Diagram("Customers"),
             List.of(new Entity("Customer", false, List.of(), new Position(100, 120))),
@@ -80,8 +80,8 @@ class NativeBrm3WriterIntegrationTest {
                 new Connection("Livro", Cardinality.ONE_TO_MANY)),
             List.of(attribute("desde", false)),
             new Position(340, 180));
-    ModelDefinition model =
-        new ModelDefinition(
+    ConceptualModel model =
+        new ConceptualModel(
             1, new Diagram("Biblioteca"), List.of(author, book), List.of(writes), List.of());
     Path output = temporaryDirectory.resolve("biblioteca.brM3");
 

@@ -3,11 +3,11 @@ package io.github.kristyancarvalho.brmgen.validation;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.github.kristyancarvalho.brmgen.model.Attribute;
+import io.github.kristyancarvalho.brmgen.model.ConceptualModel;
 import io.github.kristyancarvalho.brmgen.model.Connection;
 import io.github.kristyancarvalho.brmgen.model.Diagram;
 import io.github.kristyancarvalho.brmgen.model.Entity;
 import io.github.kristyancarvalho.brmgen.model.Generalization;
-import io.github.kristyancarvalho.brmgen.model.ModelDefinition;
 import io.github.kristyancarvalho.brmgen.model.Position;
 import io.github.kristyancarvalho.brmgen.model.Relationship;
 import io.github.kristyancarvalho.brmgen.parser.ModelParser;
@@ -21,7 +21,8 @@ class ModelValidatorTest {
 
   @Test
   void acceptsCompleteModel() throws Exception {
-    ModelDefinition model = new ModelParser().parse(fixture("complete-model.yaml"));
+    ConceptualModel model =
+        (ConceptualModel) new ModelParser().parse(fixture("complete-model.yaml"));
 
     ValidationResult result = validator.validate(model);
 
@@ -35,8 +36,8 @@ class ModelValidatorTest {
     Relationship relationship =
         new Relationship(
             "Places", false, List.of(new Connection("Missing", null)), List.of(), null);
-    ModelDefinition model =
-        new ModelDefinition(
+    ConceptualModel model =
+        new ConceptualModel(
             1,
             new Diagram("Invalid"),
             List.of(customer, customer),
@@ -57,8 +58,8 @@ class ModelValidatorTest {
     Entity weak =
         new Entity(
             "Dependent", true, List.of(contradictory, emptyComposite), new Position(-1, null));
-    ModelDefinition model =
-        new ModelDefinition(1, new Diagram("Invalid"), List.of(weak), List.of(), List.of());
+    ConceptualModel model =
+        new ConceptualModel(1, new Diagram("Invalid"), List.of(weak), List.of(), List.of());
 
     ValidationResult result = validator.validate(model);
 
@@ -80,8 +81,8 @@ class ModelValidatorTest {
         List.of(
             new Generalization("Parent", List.of("Child", "Missing"), false, false, null),
             new Generalization("Child", List.of("Parent"), false, false, null));
-    ModelDefinition model =
-        new ModelDefinition(
+    ConceptualModel model =
+        new ConceptualModel(
             1, new Diagram("Cycle"), List.of(parent, child), List.of(), generalizations);
 
     ValidationResult result = validator.validate(model);
@@ -91,7 +92,7 @@ class ModelValidatorTest {
 
   @Test
   void rejectsUnsupportedSchemaVersionAndMissingDiagram() {
-    ModelDefinition model = new ModelDefinition(2, null, List.of(), List.of(), List.of());
+    ConceptualModel model = new ConceptualModel(2, null, List.of(), List.of(), List.of());
 
     ValidationResult result = validator.validate(model);
 

@@ -3,11 +3,11 @@ package io.github.kristyancarvalho.brmgen.layout;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.github.kristyancarvalho.brmgen.model.Cardinality;
+import io.github.kristyancarvalho.brmgen.model.ConceptualModel;
 import io.github.kristyancarvalho.brmgen.model.Connection;
 import io.github.kristyancarvalho.brmgen.model.Diagram;
 import io.github.kristyancarvalho.brmgen.model.Entity;
 import io.github.kristyancarvalho.brmgen.model.Generalization;
-import io.github.kristyancarvalho.brmgen.model.ModelDefinition;
 import io.github.kristyancarvalho.brmgen.model.Position;
 import io.github.kristyancarvalho.brmgen.model.Relationship;
 import java.util.List;
@@ -20,9 +20,9 @@ class LayoutEngineTest {
   void preservesManualPositionsAndPlacesMissingEntities() {
     Entity manual = new Entity("Manual", false, List.of(), new Position(80, 80));
     Entity automatic = new Entity("Automatic", false, List.of(), null);
-    ModelDefinition model = model(List.of(manual, automatic), List.of(), List.of());
+    ConceptualModel model = model(List.of(manual, automatic), List.of(), List.of());
 
-    ModelDefinition result = layout.layout(model);
+    ConceptualModel result = layout.layout(model);
 
     assertThat(result.entities().get(0).position()).isEqualTo(new Position(80, 80));
     assertThat(result.entities().get(1).position()).isEqualTo(new Position(360, 80));
@@ -30,14 +30,14 @@ class LayoutEngineTest {
 
   @Test
   void producesDeterministicNonOverlappingEntityPositions() {
-    ModelDefinition model =
+    ConceptualModel model =
         model(
             List.of(entity("A"), entity("B"), entity("C"), entity("D"), entity("E")),
             List.of(),
             List.of());
 
-    ModelDefinition first = layout.layout(model);
-    ModelDefinition second = layout.layout(model);
+    ConceptualModel first = layout.layout(model);
+    ConceptualModel second = layout.layout(model);
 
     assertThat(first).isEqualTo(second);
     assertThat(first.entities().stream().map(Entity::position)).doesNotHaveDuplicates();
@@ -58,7 +58,7 @@ class LayoutEngineTest {
             List.of(),
             null);
 
-    ModelDefinition result =
+    ConceptualModel result =
         layout.layout(model(List.of(left, right), List.of(relationship), List.of()));
 
     assertThat(result.relationships().getFirst().position()).isEqualTo(new Position(300, 100));
@@ -71,7 +71,7 @@ class LayoutEngineTest {
     Generalization generalization =
         new Generalization("Parent", List.of("Child"), true, true, null);
 
-    ModelDefinition result =
+    ConceptualModel result =
         layout.layout(model(List.of(parent, child), List.of(), List.of(generalization)));
 
     assertThat(result.generalizations().getFirst().position()).isEqualTo(new Position(300, 200));
@@ -86,7 +86,7 @@ class LayoutEngineTest {
     Generalization generalization =
         new Generalization("A", List.of("B"), false, false, generalizationPosition);
 
-    ModelDefinition result =
+    ConceptualModel result =
         layout.layout(
             model(
                 List.of(entity("A"), entity("B")), List.of(relationship), List.of(generalization)));
@@ -99,10 +99,10 @@ class LayoutEngineTest {
     return new Entity(name, false, List.of(), null);
   }
 
-  private ModelDefinition model(
+  private ConceptualModel model(
       List<Entity> entities,
       List<Relationship> relationships,
       List<Generalization> generalizations) {
-    return new ModelDefinition(1, new Diagram("Layout"), entities, relationships, generalizations);
+    return new ConceptualModel(1, new Diagram("Layout"), entities, relationships, generalizations);
   }
 }

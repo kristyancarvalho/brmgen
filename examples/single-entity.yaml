@@ -1,5 +1,6 @@
 version: 1
-diagram:
+model:
+  type: conceptual
   name: Customers
 entities:
   - name: Customer

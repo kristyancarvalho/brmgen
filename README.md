@@ -96,11 +96,12 @@ brmgen version
 
 ## Input Format
 
-Every model definition will require schema version `1`. YAML is the primary authoring format and JSON maps to the same internal model.
+Every model definition requires schema version `1` and an explicit model type. YAML is the primary authoring format and JSON maps to the same internal model. Legacy conceptual inputs using `diagram.name` remain readable.
 
 ```yaml
 version: 1
-diagram:
+model:
+  type: conceptual
   name: Library
 entities:
   - name: Author
@@ -108,6 +109,30 @@ entities:
       - name: id
         key: true
       - name: name
+```
+
+Logical input uses `type: logical`, tables, columns, structural primary keys, and explicit foreign-key references. A column-level `primaryKey: true` is supported for simple keys; `primaryKey.columns` represents composite keys.
+
+```yaml
+version: 1
+model:
+  type: logical
+  name: Library
+tables:
+  - name: Author
+    columns:
+      - name: id
+        type: integer
+        primaryKey: true
+  - name: Book
+    columns:
+      - name: author_id
+        type: integer
+    foreignKeys:
+      - columns: [author_id]
+        references:
+          table: Author
+          columns: [id]
 ```
 
 The parser rejects unknown fields, inputs larger than 2 MiB, excessive nesting, unsupported extensions, and malformed syntax. Semantic validation currently covers schema version, names, references, relationship participation, attributes and flags, weak entities, identifying relationships, generalizations, cardinality presence, and coordinates.
