@@ -1,0 +1,5 @@
+version: 1
+diagram:
+  name: Customers
+entities:
+  - name: Customer

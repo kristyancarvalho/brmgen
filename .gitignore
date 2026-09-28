@@ -2,5 +2,6 @@
 /.gradle/
 /build/
 *.brM3
+config.chc
 .idea/
 *.iml
