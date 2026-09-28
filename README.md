@@ -40,7 +40,7 @@ flowchart LR
 
 ## Features and Status
 
-The current development build parses YAML and JSON, provides semantic validation through `validate`, includes deterministic layout, and generates conceptual `.brM3` files with entities, attributes, relationships, cardinalities, weak/identifying constructs, and generalizations using a user-supplied compatible brModelo JAR.
+The current development build parses YAML and JSON, provides semantic validation through `validate`, includes deterministic layout, and generates conceptual or logical `.brM3` files using a user-supplied compatible brModelo JAR. Logical output uses native tables, columns, composite primary-key constraints, foreign-key constraints, and table links.
 
 The first usable release will support entities, attributes, relationships, cardinalities, generalization/specialization, weak and identifying constructs, and explicit or automatic positions.
 
@@ -92,7 +92,7 @@ brmgen doctor [--brmodelo-jar <jar>]
 brmgen version
 ```
 
-`validate`, `doctor`, and conceptual `build` are functional. `--brmodelo-jar` takes precedence over `BRMODELO_JAR`.
+`validate`, `doctor`, and `build` are functional for conceptual and direct logical input. `--brmodelo-jar` takes precedence over `BRMODELO_JAR`.
 
 ## Input Format
 
