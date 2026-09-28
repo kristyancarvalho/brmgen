@@ -1,0 +1,71 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*.*.*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing semantic version tag to publish
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.repository == 'kristyancarvalho/brmgen'
+    runs-on: ubuntu-latest
+    env:
+      RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+          fetch-depth: 0
+          fetch-tags: true
+      - name: Verify release tag
+        id: release
+        run: |
+          [[ $RELEASE_TAG =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]
+          git fetch origin main:refs/remotes/origin/main
+          tag_commit=$(git rev-parse "refs/tags/${RELEASE_TAG}^{commit}")
+          git merge-base --is-ancestor "$tag_commit" origin/main
+          version=${RELEASE_TAG#v}
+          build_version=$(sed -n 's/^version = "\([^"]*\)"/\1/p' build.gradle.kts)
+          test "$version" = "$build_version"
+          printf 'version=%s\n' "$version" >>"$GITHUB_OUTPUT"
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          validate-wrappers: true
+      - name: Build release artifacts
+        run: ./gradlew clean check build
+      - name: Generate checksums
+        working-directory: build/distributions
+        env:
+          VERSION: ${{ steps.release.outputs.version }}
+        run: sha256sum "brmgen-${VERSION}.tar" "brmgen-${VERSION}.zip" >SHA256SUMS
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          assets=(
+            "build/distributions/brmgen-${VERSION}.tar"
+            "build/distributions/brmgen-${VERSION}.zip"
+            "build/distributions/SHA256SUMS"
+          )
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" "${assets[@]}" --clobber
+          else
+            gh release create "$RELEASE_TAG" "${assets[@]}" --verify-tag --generate-notes --title "brmgen ${RELEASE_TAG}"
+          fi
