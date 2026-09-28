@@ -4,13 +4,20 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.github.kristyancarvalho.brmgen.brmodelo.BrmodeloRuntimeInspector;
 import io.github.kristyancarvalho.brmgen.layout.LogicalLayoutEngine;
+import io.github.kristyancarvalho.brmgen.model.Attribute;
+import io.github.kristyancarvalho.brmgen.model.Cardinality;
 import io.github.kristyancarvalho.brmgen.model.Column;
+import io.github.kristyancarvalho.brmgen.model.ConceptualModel;
+import io.github.kristyancarvalho.brmgen.model.Connection;
 import io.github.kristyancarvalho.brmgen.model.Diagram;
+import io.github.kristyancarvalho.brmgen.model.Entity;
 import io.github.kristyancarvalho.brmgen.model.ForeignKey;
 import io.github.kristyancarvalho.brmgen.model.ForeignKeyReference;
 import io.github.kristyancarvalho.brmgen.model.LogicalModel;
 import io.github.kristyancarvalho.brmgen.model.PrimaryKey;
+import io.github.kristyancarvalho.brmgen.model.Relationship;
 import io.github.kristyancarvalho.brmgen.model.Table;
+import io.github.kristyancarvalho.brmgen.transform.LogicalTransformer;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamClass;
@@ -73,8 +80,60 @@ class LogicalBrm3WriterIntegrationTest {
     }
   }
 
+  @Test
+  void transformsConceptualManyToManyAndRoundTripsNativeLogicalDiagram() throws Exception {
+    Path jar = Path.of(System.getenv("BRMODELO_JAR")).toAbsolutePath().normalize();
+    ConceptualModel conceptual =
+        new ConceptualModel(
+            1,
+            new Diagram("Esportes"),
+            List.of(entity("Atleta", "id_atleta"), entity("Equipe", "id_equipe")),
+            List.of(
+                new Relationship(
+                    "Participa",
+                    false,
+                    List.of(
+                        new Connection("Atleta", Cardinality.ONE_TO_MANY),
+                        new Connection("Equipe", Cardinality.ONE_TO_MANY)),
+                    List.of(attribute("data_inicio"), attribute("data_fim")),
+                    null)),
+            List.of());
+    LogicalModel logical =
+        new LogicalLayoutEngine().layout(new LogicalTransformer().transform(conceptual));
+    Path output = temporaryDirectory.resolve("esportes-transformed.brM3");
+
+    new LogicalBrm3Writer().write(logical, jar, output);
+
+    try (URLClassLoader loader = BrmodeloRuntimeInspector.loader(jar);
+        InputStream input = Files.newInputStream(output);
+        ObjectInputStream stream = objectInput(input, loader)) {
+      Object guard = stream.readObject();
+      Object diagram = guard.getClass().getMethod("getDiagrama").invoke(guard);
+      List<?> tables = (List<?>) diagram.getClass().getMethod("getListaDeTabelas").invoke(diagram);
+      Object association = findNamed(tables, "Participa");
+      List<?> columns = (List<?>) association.getClass().getMethod("getCampos").invoke(association);
+
+      assertThat(columns.stream().map(this::text))
+          .containsExactly("fk_Atleta_id_atleta", "fk_Equipe_id_equipe", "data_inicio", "data_fim");
+      assertThat(columns.stream().map(this::columnState))
+          .contains("fk_Atleta_id_atleta:true:true", "fk_Equipe_id_equipe:true:true");
+    }
+  }
+
   private Table table(String name, String key) {
     return new Table(name, List.of(column(key)), new PrimaryKey(List.of(key)), List.of(), null);
+  }
+
+  private Entity entity(String name, String key) {
+    return new Entity(
+        name,
+        false,
+        List.of(new Attribute(key, true, false, false, false, false, List.of())),
+        null);
+  }
+
+  private Attribute attribute(String name) {
+    return new Attribute(name, false, false, false, false, false, List.of());
   }
 
   private Column column(String name) {

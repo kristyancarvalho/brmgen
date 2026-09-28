@@ -13,6 +13,8 @@ import io.github.kristyancarvalho.brmgen.model.LogicalModel;
 import io.github.kristyancarvalho.brmgen.model.ModelDefinition;
 import io.github.kristyancarvalho.brmgen.parser.ModelParseException;
 import io.github.kristyancarvalho.brmgen.parser.ModelParser;
+import io.github.kristyancarvalho.brmgen.transform.LogicalTransformer;
+import io.github.kristyancarvalho.brmgen.transform.TransformationException;
 import io.github.kristyancarvalho.brmgen.validation.Diagnostic;
 import io.github.kristyancarvalho.brmgen.validation.LogicalModelValidator;
 import io.github.kristyancarvalho.brmgen.validation.ModelValidator;
@@ -57,6 +59,9 @@ public final class RootCommand implements Runnable {
     @Option(names = "--brmodelo-jar", paramLabel = "<jar>")
     Path brmodeloJar;
 
+    @Option(names = "--logical", description = "Transform conceptual input to logical output.")
+    boolean logical;
+
     @picocli.CommandLine.Spec picocli.CommandLine.Model.CommandSpec spec;
 
     @Override
@@ -67,6 +72,14 @@ public final class RootCommand implements Runnable {
         if (!validation.isValid()) {
           printDiagnostics(validation, spec.commandLine().getErr());
           return 1;
+        }
+        if (logical && model instanceof ConceptualModel conceptual) {
+          model = new LogicalTransformer().transform(conceptual);
+          ValidationResult logicalValidation = validate(model);
+          if (!logicalValidation.isValid()) {
+            printDiagnostics(logicalValidation, spec.commandLine().getErr());
+            return 1;
+          }
         }
         Path destination =
             output == null ? defaultOutput(input) : output.toAbsolutePath().normalize();
@@ -86,7 +99,7 @@ public final class RootCommand implements Runnable {
         }
         spec.commandLine().getOut().println("Generated: " + destination);
         return 0;
-      } catch (ModelParseException | BrmodeloException exception) {
+      } catch (ModelParseException | BrmodeloException | TransformationException exception) {
         spec.commandLine().getErr().println(exception.getMessage());
         return 1;
       }
