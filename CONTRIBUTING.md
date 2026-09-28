@@ -61,6 +61,16 @@ Pull requests should link the issue, explain user-visible behavior, identify com
 
 Distribution changes must keep release artifacts reproducible from the tagged source, preserve checksums, and keep the external brModelo JAR outside every package. Never commit publishing credentials or private keys.
 
+Validate Arch package changes on Arch Linux from `packaging/aur/`:
+
+```bash
+makepkg --printsrcinfo
+makepkg --syncdeps --cleanbuild --clean --noconfirm
+namcap PKGBUILD brmgen-*.pkg.tar.zst
+```
+
+Regenerate `.SRCINFO` whenever PKGBUILD metadata changes.
+
 ## Definition of Done
 
 A change is complete when its acceptance criteria are met, relevant tests and regression coverage pass, `./gradlew check` and `./gradlew build` succeed, diagnostics are suitable for users, documentation is accurate, and no external binary, secret, generated output, or explanatory source comment was added.
