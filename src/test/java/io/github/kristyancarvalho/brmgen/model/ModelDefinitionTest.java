@@ -7,10 +7,10 @@ import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-class ModelDefinitionTest {
+class ConceptualModelTest {
   @Test
   void replacesMissingCollectionsWithEmptyLists() {
-    ModelDefinition model = new ModelDefinition(1, new Diagram("Empty"), null, null, null);
+    ConceptualModel model = new ConceptualModel(1, new Diagram("Empty"), null, null, null);
 
     assertThat(model.entities()).isEmpty();
     assertThat(model.relationships()).isEmpty();
@@ -20,8 +20,8 @@ class ModelDefinitionTest {
   @Test
   void makesCollectionsImmutableCopies() {
     ArrayList<Entity> entities = new ArrayList<>();
-    ModelDefinition model =
-        new ModelDefinition(1, new Diagram("Stable"), entities, List.of(), List.of());
+    ConceptualModel model =
+        new ConceptualModel(1, new Diagram("Stable"), entities, List.of(), List.of());
     entities.add(new Entity("Late", false, List.of(), null));
 
     assertThat(model.entities()).isEmpty();

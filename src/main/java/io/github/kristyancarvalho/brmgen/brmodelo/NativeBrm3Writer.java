@@ -2,10 +2,10 @@ package io.github.kristyancarvalho.brmgen.brmodelo;
 
 import io.github.kristyancarvalho.brmgen.model.Attribute;
 import io.github.kristyancarvalho.brmgen.model.Cardinality;
+import io.github.kristyancarvalho.brmgen.model.ConceptualModel;
 import io.github.kristyancarvalho.brmgen.model.Connection;
 import io.github.kristyancarvalho.brmgen.model.Entity;
 import io.github.kristyancarvalho.brmgen.model.Generalization;
-import io.github.kristyancarvalho.brmgen.model.ModelDefinition;
 import io.github.kristyancarvalho.brmgen.model.Position;
 import io.github.kristyancarvalho.brmgen.model.Relationship;
 import java.awt.Point;
@@ -25,7 +25,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public final class NativeBrm3Writer {
-  public void write(ModelDefinition model, Path jar, Path output) throws BrmodeloException {
+  public void write(ConceptualModel model, Path jar, Path output) throws BrmodeloException {
     ensureSupported(model);
     new BrmodeloRuntimeInspector().requireCompatible(jar);
     System.setProperty("java.awt.headless", "true");
@@ -50,7 +50,7 @@ public final class NativeBrm3Writer {
     }
   }
 
-  private void writeWithRuntime(ModelDefinition model, Path jar, Path output)
+  private void writeWithRuntime(ConceptualModel model, Path jar, Path output)
       throws ReflectiveOperationException, IOException {
     try (URLClassLoader loader = BrmodeloRuntimeInspector.loader(jar)) {
       RuntimeApi api = new RuntimeApi(loader);
@@ -265,7 +265,7 @@ public final class NativeBrm3Writer {
     }
   }
 
-  private void ensureSupported(ModelDefinition model) throws BrmodeloException {
+  private void ensureSupported(ConceptualModel model) throws BrmodeloException {
     boolean derived =
         model.entities().stream()
                 .flatMap(entity -> entity.attributes().stream())

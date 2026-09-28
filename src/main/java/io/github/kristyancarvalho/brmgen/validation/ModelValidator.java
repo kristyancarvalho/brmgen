@@ -1,10 +1,10 @@
 package io.github.kristyancarvalho.brmgen.validation;
 
 import io.github.kristyancarvalho.brmgen.model.Attribute;
+import io.github.kristyancarvalho.brmgen.model.ConceptualModel;
 import io.github.kristyancarvalho.brmgen.model.Connection;
 import io.github.kristyancarvalho.brmgen.model.Entity;
 import io.github.kristyancarvalho.brmgen.model.Generalization;
-import io.github.kristyancarvalho.brmgen.model.ModelDefinition;
 import io.github.kristyancarvalho.brmgen.model.Position;
 import io.github.kristyancarvalho.brmgen.model.Relationship;
 import java.util.ArrayList;
@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.Set;
 
 public final class ModelValidator {
-  public ValidationResult validate(ModelDefinition model) {
+  public ValidationResult validate(ConceptualModel model) {
     List<Diagnostic> diagnostics = new ArrayList<>();
     validateVersion(model, diagnostics);
     validateDiagram(model, diagnostics);
@@ -28,7 +28,7 @@ public final class ModelValidator {
     return new ValidationResult(diagnostics);
   }
 
-  private void validateVersion(ModelDefinition model, List<Diagnostic> diagnostics) {
+  private void validateVersion(ConceptualModel model, List<Diagnostic> diagnostics) {
     if (model.version() != 1) {
       add(
           diagnostics,
@@ -40,7 +40,7 @@ public final class ModelValidator {
     }
   }
 
-  private void validateDiagram(ModelDefinition model, List<Diagnostic> diagnostics) {
+  private void validateDiagram(ConceptualModel model, List<Diagnostic> diagnostics) {
     if (model.diagram() == null || blank(model.diagram().name())) {
       add(
           diagnostics,

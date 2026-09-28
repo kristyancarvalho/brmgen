@@ -6,10 +6,13 @@ import io.github.kristyancarvalho.brmgen.brmodelo.BrmodeloRuntimeInspector;
 import io.github.kristyancarvalho.brmgen.brmodelo.CompatibilityReport;
 import io.github.kristyancarvalho.brmgen.brmodelo.NativeBrm3Writer;
 import io.github.kristyancarvalho.brmgen.layout.LayoutEngine;
+import io.github.kristyancarvalho.brmgen.model.ConceptualModel;
+import io.github.kristyancarvalho.brmgen.model.LogicalModel;
 import io.github.kristyancarvalho.brmgen.model.ModelDefinition;
 import io.github.kristyancarvalho.brmgen.parser.ModelParseException;
 import io.github.kristyancarvalho.brmgen.parser.ModelParser;
 import io.github.kristyancarvalho.brmgen.validation.Diagnostic;
+import io.github.kristyancarvalho.brmgen.validation.LogicalModelValidator;
 import io.github.kristyancarvalho.brmgen.validation.ModelValidator;
 import io.github.kristyancarvalho.brmgen.validation.ValidationResult;
 import java.io.PrintWriter;
@@ -58,7 +61,7 @@ public final class RootCommand implements Runnable {
     public Integer call() {
       try {
         ModelDefinition model = new ModelParser().parse(input);
-        ValidationResult validation = new ModelValidator().validate(model);
+        ValidationResult validation = validate(model);
         if (!validation.isValid()) {
           printDiagnostics(validation, spec.commandLine().getErr());
           return 1;
@@ -72,7 +75,13 @@ public final class RootCommand implements Runnable {
           return 1;
         }
         Path jar = new BrmodeloJarResolver().resolve(brmodeloJar, System.getenv());
-        ModelDefinition positioned = new LayoutEngine().layout(model);
+        if (!(model instanceof ConceptualModel conceptual)) {
+          spec.commandLine()
+              .getErr()
+              .println("error[E209]: logical native generation is not available in this build");
+          return 1;
+        }
+        ConceptualModel positioned = new LayoutEngine().layout(conceptual);
         new NativeBrm3Writer().write(positioned, jar, destination);
         spec.commandLine().getOut().println("Generated: " + destination);
         return 0;
@@ -102,7 +111,7 @@ public final class RootCommand implements Runnable {
     public Integer call() {
       try {
         ModelDefinition model = new ModelParser().parse(input);
-        ValidationResult result = new ModelValidator().validate(model);
+        ValidationResult result = validate(model);
         if (!result.isValid()) {
           printDiagnostics(result, spec.commandLine().getErr());
           return 1;
@@ -171,5 +180,12 @@ public final class RootCommand implements Runnable {
       error.println(diagnostic.render());
       error.println();
     }
+  }
+
+  private static ValidationResult validate(ModelDefinition model) {
+    if (model instanceof ConceptualModel conceptual) {
+      return new ModelValidator().validate(conceptual);
+    }
+    return new LogicalModelValidator().validate((LogicalModel) model);
   }
 }

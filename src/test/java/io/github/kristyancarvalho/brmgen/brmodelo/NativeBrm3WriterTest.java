@@ -3,9 +3,9 @@ package io.github.kristyancarvalho.brmgen.brmodelo;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.github.kristyancarvalho.brmgen.model.Attribute;
+import io.github.kristyancarvalho.brmgen.model.ConceptualModel;
 import io.github.kristyancarvalho.brmgen.model.Diagram;
 import io.github.kristyancarvalho.brmgen.model.Entity;
-import io.github.kristyancarvalho.brmgen.model.ModelDefinition;
 import io.github.kristyancarvalho.brmgen.model.Position;
 import java.nio.file.Path;
 import java.util.List;
@@ -15,8 +15,8 @@ class NativeBrm3WriterTest {
   @Test
   void rejectsDerivedAttributesUnsupportedByBrmodelo() {
     Attribute attribute = new Attribute("age", false, false, false, true, false, List.of());
-    ModelDefinition model =
-        new ModelDefinition(
+    ConceptualModel model =
+        new ConceptualModel(
             1,
             new Diagram("Unsupported"),
             List.of(new Entity("Customer", false, List.of(attribute), new Position(80, 80))),

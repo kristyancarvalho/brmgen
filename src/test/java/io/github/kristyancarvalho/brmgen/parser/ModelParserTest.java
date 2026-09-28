@@ -4,7 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.github.kristyancarvalho.brmgen.model.Cardinality;
-import io.github.kristyancarvalho.brmgen.model.ModelDefinition;
+import io.github.kristyancarvalho.brmgen.model.ConceptualModel;
+import io.github.kristyancarvalho.brmgen.model.LogicalModel;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,8 +19,8 @@ class ModelParserTest {
 
   @Test
   void parsesEquivalentYamlAndJsonModels() throws Exception {
-    ModelDefinition yaml = parser.parse(fixture("complete-model.yaml"));
-    ModelDefinition json = parser.parse(fixture("complete-model.json"));
+    ConceptualModel yaml = (ConceptualModel) parser.parse(fixture("complete-model.yaml"));
+    ConceptualModel json = (ConceptualModel) parser.parse(fixture("complete-model.json"));
 
     assertThat(yaml).isEqualTo(json);
     assertThat(yaml.version()).isEqualTo(1);
@@ -30,6 +31,42 @@ class ModelParserTest {
     assertThat(yaml.relationships().getFirst().connections().getFirst().cardinality())
         .isEqualTo(Cardinality.ONE);
     assertThat(yaml.generalizations().getFirst().disjoint()).isTrue();
+  }
+
+  @Test
+  void parsesEquivalentLogicalYamlAndJsonModels() throws Exception {
+    LogicalModel yaml = (LogicalModel) parser.parse(fixture("logical-model.yaml"));
+    LogicalModel json = (LogicalModel) parser.parse(fixture("logical-model.json"));
+
+    assertThat(yaml).isEqualTo(json);
+    assertThat(yaml.diagram().name()).isEqualTo("Library");
+    assertThat(yaml.tables()).hasSize(2);
+    assertThat(yaml.tables().get(1).primaryKeyColumns()).containsExactly("id");
+    assertThat(yaml.tables().get(1).foreignKeys().getFirst().references().table())
+        .isEqualTo("Author");
+  }
+
+  @Test
+  void parsesExplicitConceptualModelMetadata() throws Exception {
+    Path input =
+        write(
+            "conceptual.yaml",
+            "version: 1\nmodel:\n  type: conceptual\n  name: Explicit\nentities: []\n");
+
+    ConceptualModel model = (ConceptualModel) parser.parse(input);
+
+    assertThat(model.diagram().name()).isEqualTo("Explicit");
+  }
+
+  @Test
+  void rejectsUnknownModelType() throws Exception {
+    Path input =
+        write("unknown-type.yaml", "version: 1\nmodel:\n  type: physical\n  name: Invalid\n");
+
+    assertThatThrownBy(() -> parser.parse(input))
+        .isInstanceOf(ModelParseException.class)
+        .hasMessageContaining("error[E108]")
+        .hasMessageContaining("conceptual or logical");
   }
 
   @Test

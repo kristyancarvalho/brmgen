@@ -1,9 +1,9 @@
 package io.github.kristyancarvalho.brmgen.layout;
 
+import io.github.kristyancarvalho.brmgen.model.ConceptualModel;
 import io.github.kristyancarvalho.brmgen.model.Connection;
 import io.github.kristyancarvalho.brmgen.model.Entity;
 import io.github.kristyancarvalho.brmgen.model.Generalization;
-import io.github.kristyancarvalho.brmgen.model.ModelDefinition;
 import io.github.kristyancarvalho.brmgen.model.Position;
 import io.github.kristyancarvalho.brmgen.model.Relationship;
 import java.util.ArrayList;
@@ -20,7 +20,7 @@ public final class LayoutEngine {
   private static final int CLEARANCE_Y = 120;
   private static final int VERTICAL_SHIFT = 140;
 
-  public ModelDefinition layout(ModelDefinition model) {
+  public ConceptualModel layout(ConceptualModel model) {
     List<Position> occupied = new ArrayList<>();
     model.entities().stream()
         .map(Entity::position)
@@ -36,7 +36,7 @@ public final class LayoutEngine {
     List<Generalization> generalizations =
         positionGeneralizations(model.generalizations(), entityPositions, occupied);
 
-    return new ModelDefinition(
+    return new ConceptualModel(
         model.version(), model.diagram(), entities, relationships, generalizations);
   }
 
