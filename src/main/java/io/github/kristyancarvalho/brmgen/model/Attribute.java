@@ -9,8 +9,10 @@ public record Attribute(
     boolean partialKey,
     boolean multivalued,
     boolean derived,
+    boolean composite,
     @JsonAlias("attributes") List<Attribute> components) {
   public Attribute {
+    composite = composite || components != null;
     components = components == null ? List.of() : List.copyOf(components);
   }
 }
