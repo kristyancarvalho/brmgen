@@ -162,7 +162,7 @@ public final class ModelValidator {
             "connection cardinality is required",
             connectionPath + ".cardinality",
             "every relationship connection needs an official brModelo cardinality",
-            "use one of: 0..1, 1, 1..n, 0..n");
+            "use one of: 0..1, 1..1, 1..n, 0..n");
       }
     }
   }
