@@ -7,6 +7,7 @@
 <p>
   <a href="https://github.com/kristyancarvalho/brmgen/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/kristyancarvalho/brmgen/ci.yml?branch=main&amp;style=flat-square&amp;label=CI"></a>
   <a href="https://github.com/kristyancarvalho/brmgen/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/kristyancarvalho/brmgen?display_name=tag&amp;sort=semver&amp;style=flat-square"></a>
+  <a href="https://aur.archlinux.org/packages/brmgen"><img alt="AUR package" src="https://img.shields.io/aur/version/brmgen?style=flat-square"></a>
   <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/github/license/kristyancarvalho/brmgen?style=flat-square"></a>
 </p>
 
@@ -75,11 +76,17 @@ Official semantic-version releases provide application archives and SHA-256 chec
 
 ### Arch Linux
 
-Until the prepared AUR package receives its initial publication, build the checked-in package definition directly:
+Install the stable package with an AUR helper:
 
 ```bash
-git clone https://github.com/kristyancarvalho/brmgen.git
-cd brmgen/packaging/aur
+paru -S brmgen
+```
+
+The equivalent manual workflow is:
+
+```bash
+git clone https://aur.archlinux.org/brmgen.git
+cd brmgen
 makepkg -si
 ```
 
