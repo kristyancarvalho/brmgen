@@ -1,6 +1,6 @@
 # brmgen
 
-`brmgen` is a small command-line application for turning versionable YAML or JSON conceptual-model definitions into native, editable brModelo desktop `.brM3` files.
+`brmgen` is a small command-line application for turning versionable YAML or JSON model definitions into native, editable brModelo desktop `.brM3` files.
 
 The project is under active development. Parsing, validation, layout, runtime checks, and minimal native generation are available; broader conceptual mapping is being delivered incrementally.
 
@@ -40,7 +40,7 @@ flowchart LR
 
 ## Features and Status
 
-The current development build parses YAML and JSON, provides semantic validation through `validate`, includes deterministic layout, and generates native entity-only `.brM3` files with a user-supplied compatible brModelo JAR. Mapping attributes, relationships, and generalizations remains tracked work; unsupported native constructs fail explicitly.
+The current development build parses YAML and JSON, provides semantic validation through `validate`, includes deterministic layout, and generates conceptual `.brM3` files with entities, attributes, relationships, cardinalities, weak/identifying constructs, and generalizations using a user-supplied compatible brModelo JAR.
 
 The first usable release will support entities, attributes, relationships, cardinalities, generalization/specialization, weak and identifying constructs, and explicit or automatic positions.
 
@@ -74,7 +74,7 @@ Validate the included YAML example:
 
 A valid model prints its normalized input path and exits with status `0`. Syntax, schema, and semantic errors are written to stderr with a non-zero status and stable diagnostic codes.
 
-Check a local brModelo runtime and generate the entity-only example:
+Check a local brModelo runtime and generate an example:
 
 ```bash
 ./gradlew run --args='doctor --brmodelo-jar /path/to/brModelo.jar'
@@ -92,7 +92,7 @@ brmgen doctor [--brmodelo-jar <jar>]
 brmgen version
 ```
 
-`validate`, `doctor`, and entity-only `build` are functional. `--brmodelo-jar` takes precedence over `BRMODELO_JAR`.
+`validate`, `doctor`, and conceptual `build` are functional. `--brmodelo-jar` takes precedence over `BRMODELO_JAR`.
 
 ## Input Format
 
@@ -130,11 +130,11 @@ The parser, internal model, validator, and layout support:
 - simple, key, partial-key, composite, multivalued, and derived attributes;
 - binary and n-ary relationships with relationship attributes;
 - identifying relationships;
-- cardinalities `0..1`, `1`, `1..n`, and `0..n`;
+- cardinalities `0..1`, `1..1` (and legacy alias `1`), `1..n`, and `0..n`;
 - total/partial and disjoint/overlapping generalization data;
 - manual and deterministic automatic positions.
 
-All listed features are available to parsing and validation. Native `.brM3` mapping currently accepts only regular entities without attributes; other constructs produce an explicit unsupported-mapping diagnostic.
+All listed features except derived attributes are available to native conceptual `.brM3` mapping. brModelo 3.3.x has no native derived-attribute property, so native generation rejects that flag explicitly instead of discarding it.
 
 ## Architecture
 

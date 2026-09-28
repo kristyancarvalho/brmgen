@@ -146,7 +146,7 @@ public final class RootCommand implements Runnable {
                       + String.join(", ", report.missingCapabilities()));
           return 1;
         }
-        out.println("Compatibility: supported native entity capabilities available");
+        out.println("Compatibility: supported native conceptual capabilities available");
         return 0;
       } catch (BrmodeloException exception) {
         spec.commandLine().getErr().println(exception.getMessage());

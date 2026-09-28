@@ -13,8 +13,8 @@ import org.junit.jupiter.api.Test;
 
 class NativeBrm3WriterTest {
   @Test
-  void rejectsConstructsThatAreNotMappedYet() {
-    Attribute attribute = new Attribute("id", true, false, false, false, false, List.of());
+  void rejectsDerivedAttributesUnsupportedByBrmodelo() {
+    Attribute attribute = new Attribute("age", false, false, false, true, false, List.of());
     ModelDefinition model =
         new ModelDefinition(
             1,
