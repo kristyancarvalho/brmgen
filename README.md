@@ -86,13 +86,15 @@ The output defaults to the input path with a `.brM3` extension. Existing files a
 ## CLI
 
 ```text
-brmgen build <input> [-o <file>] [--brmodelo-jar <jar>]
+brmgen build <input> [-o <file>] [--logical] [--brmodelo-jar <jar>]
 brmgen validate <input>
 brmgen doctor [--brmodelo-jar <jar>]
 brmgen version
 ```
 
 `validate`, `doctor`, and `build` are functional for conceptual and direct logical input. `--brmodelo-jar` takes precedence over `BRMODELO_JAR`.
+
+Use `build --logical` with conceptual input to generate the transformed logical diagram. The initial transformation maps identifiers to primary keys, 1:N relationships to foreign keys on the N side, and N:N relationships to associative tables with composite keys. Relationship attributes follow the FK or associative table. For 1:1, the mandatory participant receives the FK when participation differs; ties use the second declared participant deterministically.
 
 ## Input Format
 

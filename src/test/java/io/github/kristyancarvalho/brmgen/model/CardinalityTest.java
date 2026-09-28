@@ -27,4 +27,13 @@ class CardinalityTest {
         .isThrownBy(() -> Cardinality.parse(input))
         .withMessageContaining(input);
   }
+
+  @ParameterizedTest
+  @CsvSource({"0..1,0,false", "1..1,1,false", "1..n,1,true", "0..n,0,true"})
+  void exposesStructuredBounds(String input, int minimum, boolean many) {
+    Cardinality cardinality = Cardinality.parse(input);
+
+    assertThat(cardinality.minimum()).isEqualTo(minimum);
+    assertThat(cardinality.many()).isEqualTo(many);
+  }
 }
