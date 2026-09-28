@@ -5,7 +5,9 @@ import io.github.kristyancarvalho.brmgen.brmodelo.BrmodeloJarResolver;
 import io.github.kristyancarvalho.brmgen.brmodelo.BrmodeloRuntimeInspector;
 import io.github.kristyancarvalho.brmgen.brmodelo.CompatibilityReport;
 import io.github.kristyancarvalho.brmgen.brmodelo.NativeBrm3Writer;
+import io.github.kristyancarvalho.brmgen.brmodelo.logical.LogicalBrm3Writer;
 import io.github.kristyancarvalho.brmgen.layout.LayoutEngine;
+import io.github.kristyancarvalho.brmgen.layout.LogicalLayoutEngine;
 import io.github.kristyancarvalho.brmgen.model.ConceptualModel;
 import io.github.kristyancarvalho.brmgen.model.LogicalModel;
 import io.github.kristyancarvalho.brmgen.model.ModelDefinition;
@@ -75,14 +77,13 @@ public final class RootCommand implements Runnable {
           return 1;
         }
         Path jar = new BrmodeloJarResolver().resolve(brmodeloJar, System.getenv());
-        if (!(model instanceof ConceptualModel conceptual)) {
-          spec.commandLine()
-              .getErr()
-              .println("error[E209]: logical native generation is not available in this build");
-          return 1;
+        if (model instanceof ConceptualModel conceptual) {
+          ConceptualModel positioned = new LayoutEngine().layout(conceptual);
+          new NativeBrm3Writer().write(positioned, jar, destination);
+        } else {
+          LogicalModel positioned = new LogicalLayoutEngine().layout((LogicalModel) model);
+          new LogicalBrm3Writer().write(positioned, jar, destination);
         }
-        ConceptualModel positioned = new LayoutEngine().layout(conceptual);
-        new NativeBrm3Writer().write(positioned, jar, destination);
         spec.commandLine().getOut().println("Generated: " + destination);
         return 0;
       } catch (ModelParseException | BrmodeloException exception) {
@@ -155,7 +156,8 @@ public final class RootCommand implements Runnable {
                       + String.join(", ", report.missingCapabilities()));
           return 1;
         }
-        out.println("Compatibility: supported native conceptual capabilities available");
+        out.println(
+            "Compatibility: supported native conceptual and logical capabilities available");
         return 0;
       } catch (BrmodeloException exception) {
         spec.commandLine().getErr().println(exception.getMessage());
