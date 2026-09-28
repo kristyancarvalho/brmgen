@@ -1,1 +1,6 @@
-specs/
+/specs/
+/.gradle/
+/build/
+*.brM3
+.idea/
+*.iml
