@@ -2,7 +2,7 @@
 
 `brmgen` is a small command-line application for turning versionable YAML or JSON model definitions into native, editable brModelo desktop `.brM3` files.
 
-The project is under active development. Parsing, validation, layout, runtime checks, and minimal native generation are available; broader conceptual mapping is being delivered incrementally.
+The project is under active development. The current MVP generates native conceptual and logical diagrams and provides an initial conceptual-to-logical transformation.
 
 ## Table of Contents
 
@@ -32,6 +32,8 @@ flowchart LR
     PARSER --> MODEL[Internal Model]
     MODEL --> VALIDATOR[Validator]
     VALIDATOR --> LAYOUT[Layout]
+    VALIDATOR --> TRANSFORM[Logical Transformer]
+    TRANSFORM --> LAYOUT
     LAYOUT --> ADAPTER[brModelo Adapter]
     ADAPTER --> BRM3[.brM3]
 ```
@@ -42,7 +44,16 @@ flowchart LR
 
 The current development build parses YAML and JSON, provides semantic validation through `validate`, includes deterministic layout, and generates conceptual or logical `.brM3` files using a user-supplied compatible brModelo JAR. Logical output uses native tables, columns, composite primary-key constraints, foreign-key constraints, and table links.
 
-The first usable release will support entities, attributes, relationships, cardinalities, generalization/specialization, weak and identifying constructs, and explicit or automatic positions.
+| Feature | Conceptual | Logical |
+| --- | --- | --- |
+| Entities / tables | Yes | Yes |
+| Attributes / columns | Yes | Yes |
+| Identifiers / PK | Yes | Yes, including composite PK |
+| Relationships | Yes | Via FK or associative table |
+| Cardinalities | Yes | Stored on native table links |
+| Relationship attributes | Yes | On FK side or associative table |
+| Foreign keys | n/a | Yes, with explicit references |
+| Manual / automatic layout | Yes | Yes |
 
 ## Requirements
 
@@ -78,7 +89,9 @@ Check a local brModelo runtime and generate an example:
 
 ```bash
 ./gradlew run --args='doctor --brmodelo-jar /path/to/brModelo.jar'
-./gradlew run --args='build examples/single-entity.yaml --brmodelo-jar /path/to/brModelo.jar'
+./gradlew run --args='build examples/author-book/conceptual.yaml --brmodelo-jar /path/to/brModelo.jar'
+./gradlew run --args='build examples/author-book/logical.yaml --brmodelo-jar /path/to/brModelo.jar'
+./gradlew run --args='build examples/author-book/conceptual.yaml --logical -o author-book-logical.brM3 --brmodelo-jar /path/to/brModelo.jar'
 ```
 
 The output defaults to the input path with a `.brM3` extension. Existing files are never overwritten.
@@ -147,7 +160,7 @@ position:
   y: 200
 ```
 
-Manual positions take precedence. Missing entity positions are assigned on a deterministic grid, while relationships and generalizations are placed relative to their participants.
+Manual positions take precedence. Missing entities and tables are assigned to deterministic grids, while relationships and generalizations are placed relative to their participants.
 
 ## Supported Modeling Features
 
@@ -162,6 +175,8 @@ The parser, internal model, validator, and layout support:
 - manual and deterministic automatic positions.
 
 All listed features except derived attributes are available to native conceptual `.brM3` mapping. brModelo 3.3.x has no native derived-attribute property, so native generation rejects that flag explicitly instead of discarding it.
+
+The initial conceptual-to-logical transformation covers regular entities, simple/composite identifier columns, binary 1:1, 1:N, and N:N relationships, and relationship attributes. Multivalued attributes, weak/identifying constructs, n-ary relationships, and generalizations are rejected explicitly by transformation until mapping rules are implemented; they remain supported in conceptual input and native conceptual output.
 
 ## Architecture
 
@@ -182,7 +197,7 @@ brModelo is a separate GPL-3.0 project. Its source and binaries are not part of,
 BRMODELO_JAR=/path/to/brModelo.jar ./gradlew integrationTest
 ```
 
-`check` includes unit tests and formatting verification. `integrationTest` is separate, requires `BRMODELO_JAR`, generates a native file, deserializes it through the selected runtime, and verifies its entity structure.
+`check` includes unit tests and formatting verification. `integrationTest` is separate, requires `BRMODELO_JAR`, generates native conceptual and logical files, deserializes only files produced by the tests, and verifies their structure.
 
 ## Project Structure
 
@@ -191,11 +206,8 @@ BRMODELO_JAR=/path/to/brModelo.jar ./gradlew integrationTest
 src/main/      application code
 src/test/      unit and integration-facing tests
 src/integrationTest/ tests requiring a local brModelo JAR
-examples/      representative model definitions
-schemas/       published input schemas
+examples/      representative conceptual and logical definitions
 ```
-
-Directories are added as their corresponding implementation becomes available.
 
 ## Contributing
 
