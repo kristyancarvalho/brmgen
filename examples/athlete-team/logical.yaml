@@ -1,0 +1,32 @@
+version: 1
+model:
+  type: logical
+  name: Atleta e Equipe
+tables:
+  - name: Atleta
+    position: {x: 60, y: 120}
+    columns:
+      - {name: id_atleta, type: integer, primaryKey: true}
+      - {name: nome, type: varchar}
+      - {name: data_nascimento, type: date}
+      - {name: posicao, type: varchar}
+  - name: Participa
+    position: {x: 380, y: 300}
+    columns:
+      - {name: fk_Atleta_id_atleta, type: integer}
+      - {name: fk_Equipe_id_equipe, type: integer}
+      - {name: data_inicio, type: date}
+      - {name: data_fim, type: date}
+    primaryKey:
+      columns: [fk_Atleta_id_atleta, fk_Equipe_id_equipe]
+    foreignKeys:
+      - columns: [fk_Atleta_id_atleta]
+        references: {table: Atleta, columns: [id_atleta]}
+      - columns: [fk_Equipe_id_equipe]
+        references: {table: Equipe, columns: [id_equipe]}
+  - name: Equipe
+    position: {x: 700, y: 120}
+    columns:
+      - {name: id_equipe, type: integer, primaryKey: true}
+      - {name: nome, type: varchar}
+      - {name: cidade, type: varchar}

@@ -1,0 +1,27 @@
+version: 1
+model:
+  type: conceptual
+  name: Autor e Livro
+entities:
+  - name: Autor
+    position: {x: 80, y: 220}
+    attributes:
+      - name: Cod_autor
+        key: true
+      - name: Nome_autor
+      - name: nacionalidade
+  - name: Livro
+    position: {x: 720, y: 220}
+    attributes:
+      - name: cod_livro
+        key: true
+      - name: titulo
+      - name: ano_publicacao
+relationships:
+  - name: Escreve
+    position: {x: 390, y: 220}
+    connections:
+      - entity: Autor
+        cardinality: 1..n
+      - entity: Livro
+        cardinality: 1..n

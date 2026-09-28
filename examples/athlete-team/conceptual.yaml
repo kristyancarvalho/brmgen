@@ -1,0 +1,29 @@
+version: 1
+model:
+  type: conceptual
+  name: Atleta e Equipe
+entities:
+  - name: Atleta
+    position: {x: 80, y: 220}
+    attributes:
+      - {name: id_atleta, key: true}
+      - {name: nome}
+      - {name: data_nascimento}
+      - {name: posicao}
+  - name: Equipe
+    position: {x: 720, y: 220}
+    attributes:
+      - {name: id_equipe, key: true}
+      - {name: nome}
+      - {name: cidade}
+relationships:
+  - name: Participa
+    position: {x: 390, y: 220}
+    attributes:
+      - {name: data_inicio}
+      - {name: data_fim}
+    connections:
+      - entity: Atleta
+        cardinality: 1..n
+      - entity: Equipe
+        cardinality: 1..n

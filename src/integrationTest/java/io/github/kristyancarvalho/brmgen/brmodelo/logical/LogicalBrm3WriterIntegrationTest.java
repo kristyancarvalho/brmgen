@@ -72,6 +72,10 @@ class LogicalBrm3WriterIntegrationTest {
           (List<?>) nativeWrites.getClass().getMethod("getConstraints").invoke(nativeWrites);
       assertThat(constraints.stream().map(this::constraintType))
           .containsExactlyInAnyOrder("tpPK", "tpFK", "tpFK");
+      assertThat(constraints).allMatch(this::validatedConstraint);
+      assertThat(
+              constraints.stream().filter(constraint -> constraintType(constraint).equals("tpFK")))
+          .allMatch(this::hasConstraintOrigin);
       assertThat(
               items.stream()
                   .filter(item -> item.getClass().getName().equals("diagramas.logico.LogicoLinha")))
@@ -171,6 +175,22 @@ class LogicalBrm3WriterIntegrationTest {
   private String constraintType(Object constraint) {
     try {
       return constraint.getClass().getMethod("getTipo").invoke(constraint).toString();
+    } catch (ReflectiveOperationException exception) {
+      throw new IllegalStateException(exception);
+    }
+  }
+
+  private boolean validatedConstraint(Object constraint) {
+    try {
+      return (boolean) constraint.getClass().getMethod("isValidado").invoke(constraint);
+    } catch (ReflectiveOperationException exception) {
+      throw new IllegalStateException(exception);
+    }
+  }
+
+  private boolean hasConstraintOrigin(Object constraint) {
+    try {
+      return constraint.getClass().getMethod("getConstraintOrigem").invoke(constraint) != null;
     } catch (ReflectiveOperationException exception) {
       throw new IllegalStateException(exception);
     }

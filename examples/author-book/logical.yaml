@@ -1,0 +1,29 @@
+version: 1
+model:
+  type: logical
+  name: Autor e Livro
+tables:
+  - name: Autor
+    position: {x: 60, y: 180}
+    columns:
+      - {name: Cod_autor, type: integer, primaryKey: true}
+      - {name: Nome_autor, type: varchar}
+      - {name: nacionalidade, type: varchar}
+  - name: Escreve
+    position: {x: 380, y: 180}
+    columns:
+      - {name: fk_Livro_cod_livro, type: integer}
+      - {name: fk_Autor_Cod_autor, type: integer}
+    primaryKey:
+      columns: [fk_Livro_cod_livro, fk_Autor_Cod_autor]
+    foreignKeys:
+      - columns: [fk_Livro_cod_livro]
+        references: {table: Livro, columns: [cod_livro]}
+      - columns: [fk_Autor_Cod_autor]
+        references: {table: Autor, columns: [Cod_autor]}
+  - name: Livro
+    position: {x: 700, y: 180}
+    columns:
+      - {name: cod_livro, type: integer, primaryKey: true}
+      - {name: titulo, type: varchar}
+      - {name: ano_publicacao, type: integer}
