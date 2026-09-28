@@ -1,0 +1,19 @@
+name: Feature request
+description: Propose a focused brmgen improvement
+title: "[Feature]: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Explain the modeling or CLI problem to solve.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Describe the smallest useful outcome.
+    validations:
+      required: true
