@@ -71,6 +71,18 @@ Build an application distribution from source:
 
 The archive distributions are written to `build/distributions/` by `./gradlew build`.
 
+### Arch Linux
+
+Until the prepared AUR package receives its initial publication, build the checked-in package definition directly:
+
+```bash
+git clone https://github.com/kristyancarvalho/brmgen.git
+cd brmgen/packaging/aur
+makepkg -si
+```
+
+The package installs the CLI and its Java dependencies but does not install or redistribute `brModelo.jar`.
+
 ## Quick Start
 
 Validate a model definition:
@@ -219,6 +231,7 @@ Native integration tests deserialize only files generated inside the test run. T
 | --- | --- |
 | `.github/` | Issue templates and GitHub Actions workflows |
 | `examples/` | Representative conceptual and logical definitions |
+| `packaging/` | Arch Linux and AUR package definitions |
 | `src/main/` | Application source code |
 | `src/test/` | Unit and regular integration-facing tests |
 | `src/integrationTest/` | Tests requiring an explicitly supplied brModelo JAR |
