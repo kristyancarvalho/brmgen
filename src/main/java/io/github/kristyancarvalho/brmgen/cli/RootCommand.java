@@ -1,5 +1,11 @@
 package io.github.kristyancarvalho.brmgen.cli;
 
+import io.github.kristyancarvalho.brmgen.model.ModelDefinition;
+import io.github.kristyancarvalho.brmgen.parser.ModelParseException;
+import io.github.kristyancarvalho.brmgen.parser.ModelParser;
+import io.github.kristyancarvalho.brmgen.validation.Diagnostic;
+import io.github.kristyancarvalho.brmgen.validation.ModelValidator;
+import io.github.kristyancarvalho.brmgen.validation.ValidationResult;
 import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.util.concurrent.Callable;
@@ -51,10 +57,27 @@ public final class RootCommand implements Runnable {
     @Parameters(index = "0", paramLabel = "<input>")
     Path input;
 
+    @picocli.CommandLine.Spec picocli.CommandLine.Model.CommandSpec spec;
+
     @Override
     public Integer call() {
-      System.err.println("Model validation is not available in this development build.");
-      return 2;
+      try {
+        ModelDefinition model = new ModelParser().parse(input);
+        ValidationResult result = new ModelValidator().validate(model);
+        if (!result.isValid()) {
+          PrintWriter error = spec.commandLine().getErr();
+          for (Diagnostic diagnostic : result.diagnostics()) {
+            error.println(diagnostic.render());
+            error.println();
+          }
+          return 1;
+        }
+        spec.commandLine().getOut().println("Valid model: " + input.toAbsolutePath().normalize());
+        return 0;
+      } catch (ModelParseException exception) {
+        spec.commandLine().getErr().println(exception.getMessage());
+        return 1;
+      }
     }
   }
 
