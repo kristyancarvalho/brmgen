@@ -1,0 +1,90 @@
+{
+  "version": 1,
+  "diagram": {
+    "name": "Commerce"
+  },
+  "entities": [
+    {
+      "name": "Person",
+      "position": {
+        "x": 100,
+        "y": 120
+      },
+      "attributes": [
+        {
+          "name": "id",
+          "key": true
+        },
+        {
+          "name": "address",
+          "components": [
+            {
+              "name": "street"
+            },
+            {
+              "name": "city"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Customer",
+      "attributes": [
+        {
+          "name": "emails",
+          "multivalued": true
+        }
+      ]
+    },
+    {
+      "name": "Order",
+      "weak": true,
+      "attributes": [
+        {
+          "name": "number",
+          "partialKey": true
+        },
+        {
+          "name": "total",
+          "derived": true
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "name": "Places",
+      "identifying": true,
+      "connections": [
+        {
+          "entity": "Customer",
+          "cardinality": "1"
+        },
+        {
+          "entity": "Order",
+          "cardinality": "0..n"
+        }
+      ],
+      "attributes": [
+        {
+          "name": "createdAt"
+        }
+      ],
+      "position": {
+        "x": 350,
+        "y": 240
+      }
+    }
+  ],
+  "generalizations": [
+    {
+      "parent": "Person",
+      "children": [
+        "Customer"
+      ],
+      "total": false,
+      "disjoint": true
+    }
+  ]
+}
