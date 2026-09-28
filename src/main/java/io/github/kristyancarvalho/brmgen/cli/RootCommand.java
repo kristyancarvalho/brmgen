@@ -29,9 +29,17 @@ import picocli.CommandLine.Parameters;
 
 @Command(
     name = "brmgen",
-    description = "Generate native brModelo conceptual model files from YAML or JSON.",
+    description = "Generate editable brModelo conceptual and logical models from YAML or JSON.",
     mixinStandardHelpOptions = true,
     versionProvider = VersionProvider.class,
+    synopsisSubcommandLabel = "COMMAND",
+    footer = {
+      "%nExamples:",
+      "  brmgen validate model.yaml",
+      "  brmgen build model.yaml -o model.brM3",
+      "  brmgen build conceptual.yaml --logical --brmodelo-jar /path/to/brModelo.jar",
+      "%nRun 'brmgen COMMAND --help' for help with a command."
+    },
     subcommands = {
       RootCommand.BuildCommand.class,
       RootCommand.ValidateCommand.class,
@@ -46,17 +54,33 @@ public final class RootCommand implements Runnable {
     throw new picocli.CommandLine.ParameterException(spec.commandLine(), "A command is required.");
   }
 
-  @Command(name = "build", description = "Generate a native .brM3 file.")
+  @Command(
+      name = "build",
+      description = "Generate an editable conceptual or logical .brM3 file.",
+      mixinStandardHelpOptions = true,
+      footer = {
+        "%nExamples:",
+        "  brmgen build model.yaml",
+        "  brmgen build model.json -o diagram.brM3",
+        "  brmgen build conceptual.yaml --logical --brmodelo-jar /path/to/brModelo.jar"
+      })
   static final class BuildCommand implements Callable<Integer> {
-    @Parameters(index = "0", paramLabel = "<input>")
+    @Parameters(
+        index = "0",
+        paramLabel = "<input>",
+        description = "YAML or JSON model definition to build.")
     Path input;
 
     @Option(
         names = {"-o", "--output"},
-        paramLabel = "<file>")
+        paramLabel = "<file>",
+        description = "Destination .brM3 file; defaults beside the input.")
     Path output;
 
-    @Option(names = "--brmodelo-jar", paramLabel = "<jar>")
+    @Option(
+        names = "--brmodelo-jar",
+        paramLabel = "<jar>",
+        description = "Compatible brModelo JAR; overrides BRMODELO_JAR.")
     Path brmodeloJar;
 
     @Option(names = "--logical", description = "Transform conceptual input to logical output.")
@@ -114,9 +138,16 @@ public final class RootCommand implements Runnable {
     }
   }
 
-  @Command(name = "validate", description = "Validate a YAML or JSON model definition.")
+  @Command(
+      name = "validate",
+      description = "Validate a YAML or JSON model definition without generating output.",
+      mixinStandardHelpOptions = true,
+      footer = {"%nExample:", "  brmgen validate model.yaml"})
   static final class ValidateCommand implements Callable<Integer> {
-    @Parameters(index = "0", paramLabel = "<input>")
+    @Parameters(
+        index = "0",
+        paramLabel = "<input>",
+        description = "YAML or JSON model definition to validate.")
     Path input;
 
     @picocli.CommandLine.Spec picocli.CommandLine.Model.CommandSpec spec;
@@ -139,9 +170,16 @@ public final class RootCommand implements Runnable {
     }
   }
 
-  @Command(name = "doctor", description = "Check the Java and brModelo runtime setup.")
+  @Command(
+      name = "doctor",
+      description = "Check the Java runtime and brModelo compatibility.",
+      mixinStandardHelpOptions = true,
+      footer = {"%nExample:", "  brmgen doctor --brmodelo-jar /path/to/brModelo.jar"})
   static final class DoctorCommand implements Callable<Integer> {
-    @Option(names = "--brmodelo-jar", paramLabel = "<jar>")
+    @Option(
+        names = "--brmodelo-jar",
+        paramLabel = "<jar>",
+        description = "Compatible brModelo JAR; overrides BRMODELO_JAR.")
     Path brmodeloJar;
 
     @picocli.CommandLine.Spec picocli.CommandLine.Model.CommandSpec spec;
@@ -179,7 +217,10 @@ public final class RootCommand implements Runnable {
     }
   }
 
-  @Command(name = "version", description = "Print the brmgen version.")
+  @Command(
+      name = "version",
+      description = "Print the brmgen version.",
+      mixinStandardHelpOptions = true)
   static final class VersionCommand implements Runnable {
     @picocli.CommandLine.Spec picocli.CommandLine.Model.CommandSpec spec;
 
