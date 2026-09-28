@@ -16,15 +16,31 @@ public final class BrmodeloRuntimeInspector {
       Class<?> conceptual =
           requiredClass(loader, "diagramas.conceitual.DiagramaConceitual", missing);
       Class<?> entity = requiredClass(loader, "diagramas.conceitual.Entidade", missing);
+      Class<?> logical = requiredClass(loader, "diagramas.logico.DiagramaLogico", missing);
+      Class<?> table = requiredClass(loader, "diagramas.logico.Tabela", missing);
+      Class<?> column = requiredClass(loader, "diagramas.logico.Campo", missing);
+      Class<?> constraint = requiredClass(loader, "diagramas.logico.Constraint", missing);
+      Class<?> logicalLine = requiredClass(loader, "diagramas.logico.LogicoLinha", missing);
       Class<?> shape = requiredClass(loader, "desenho.FormaElementar", missing);
       Class<?> guard = requiredClass(loader, "controlador.apoios.GuardaPadraoBrM", missing);
       requireConstructor(editor, missing);
       requireConstructor(conceptual, missing, editor);
       requireConstructor(entity, missing, diagram);
+      requireConstructor(logical, missing, editor);
+      requireConstructor(table, missing, diagram);
+      requireConstructor(column, missing, table);
+      requireConstructor(constraint, missing, table);
+      requireConstructor(logicalLine, missing, diagram);
       requireConstructor(guard, missing, diagram);
       requireMethod(diagram, missing, "Add", shape);
       requireMethod(entity, missing, "setTexto", String.class);
       requireMethod(entity, missing, "setLocation", int.class, int.class);
+      requireMethod(table, missing, "getCampos");
+      requireMethod(table, missing, "getConstraints");
+      requireMethod(column, missing, "setKey", boolean.class);
+      requireMethod(column, missing, "setFkey", boolean.class);
+      requireMethod(constraint, missing, "Add", column, column);
+      requireMethod(logicalLine, missing, "PrepareCardinalidade");
       requireMethod(guard, missing, "getDiagrama");
     } catch (IOException | LinkageError exception) {
       throw new BrmodeloException(
@@ -45,7 +61,7 @@ public final class BrmodeloRuntimeInspector {
     }
   }
 
-  static URLClassLoader loader(Path jar) throws IOException {
+  public static URLClassLoader loader(Path jar) throws IOException {
     return new URLClassLoader(
         new java.net.URL[] {jar.toUri().toURL()}, ClassLoader.getPlatformClassLoader());
   }

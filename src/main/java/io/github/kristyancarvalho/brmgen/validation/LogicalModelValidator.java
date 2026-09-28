@@ -135,6 +135,14 @@ public final class LogicalModelValidator {
           foreignKeyPath + ".references.columns",
           "L008",
           diagnostics);
+      if (!foreignKey.references().columns().equals(referenced.primaryKeyColumns())) {
+        add(
+            diagnostics,
+            "L012",
+            "foreign key does not reference the complete primary key",
+            foreignKeyPath + ".references.columns",
+            "reference the primary-key columns in declared order");
+      }
       if (foreignKey.columns().size() != foreignKey.references().columns().size()) {
         add(
             diagnostics,
