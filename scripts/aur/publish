@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-tag=${1:?usage: publish TAG DESTINATION}
-destination=${2:?usage: publish TAG DESTINATION}
+tag=${1:?usage: publish TAG DESTINATION_DIR}
+destination_root=${2:?usage: publish TAG DESTINATION_DIR}
 [[ $tag =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]] || {
   printf 'Invalid release tag: %s\n' "$tag" >&2
   exit 2
@@ -16,54 +16,66 @@ tag_commit=$(git -C "$root_dir" rev-parse "refs/tags/${tag}^{commit}")
 git -C "$root_dir" merge-base --is-ancestor "$tag_commit" origin/main
 build_version=$(sed -n 's/^version = "\([^"]*\)"/\1/p' "$root_dir/build.gradle.kts")
 test "$version" = "$build_version"
+
 archive_sha256=$(curl -fL --retry 3 --connect-timeout 15 "${url}/releases/download/${tag}/brmgen-${version}.tar" | sha256sum | cut -d' ' -f1)
 license_sha256=$(curl -fL --retry 3 --connect-timeout 15 "${url}/raw/${tag}/LICENSE" | sha256sum | cut -d' ' -f1)
+gtk_archive_sha256=$(curl -fL --retry 3 --connect-timeout 15 "${url}/releases/download/${tag}/brmgen-gtk-${version}.tar.gz" | sha256sum | cut -d' ' -f1)
 
-if [[ ! -d $destination/.git ]]; then
-  git clone ssh://aur@aur.archlinux.org/brmgen.git "$destination"
-fi
+publish_package() {
+  local pkgname=$1
+  local pkgdir=$2
+  local template=$3
+  local archive_sha=$4
 
-current_version=$(sed -n 's/^pkgver=//p' "$destination/PKGBUILD" 2>/dev/null | head -n1 || true)
-current_release=$(sed -n 's/^pkgrel=//p' "$destination/PKGBUILD" 2>/dev/null | head -n1 || true)
-[[ $current_release =~ ^[1-9][0-9]*$ ]] || current_release=1
-if [[ $current_version == "$version" ]]; then
-  package_release=$current_release
-else
-  package_release=1
-fi
+  if [[ ! -d $pkgdir/.git ]]; then
+    git clone "ssh://aur@aur.archlinux.org/${pkgname}.git" "$pkgdir"
+  fi
 
-render_package() {
-  sed \
-    -e "s/@PKGVER@/$version/g" \
-    -e "s/@PKGREL@/$package_release/g" \
-    -e "s/@ARCHIVE_SHA256@/$archive_sha256/g" \
-    -e "s/@LICENSE_SHA256@/$license_sha256/g" \
-    "$root_dir/packaging/aur/PKGBUILD.in" >"$destination/PKGBUILD.candidate"
+  current_version=$(sed -n 's/^pkgver=//p' "$pkgdir/PKGBUILD" 2>/dev/null | head -n1 || true)
+  current_release=$(sed -n 's/^pkgrel=//p' "$pkgdir/PKGBUILD" 2>/dev/null | head -n1 || true)
+  [[ $current_release =~ ^[1-9][0-9]*$ ]] || current_release=1
+  if [[ $current_version == "$version" ]]; then
+    package_release=$current_release
+  else
+    package_release=1
+  fi
+
+  render_package() {
+    sed \
+      -e "s/@PKGVER@/$version/g" \
+      -e "s/@PKGREL@/$package_release/g" \
+      -e "s/@ARCHIVE_SHA256@/$archive_sha/g" \
+      -e "s/@LICENSE_SHA256@/$license_sha256/g" \
+      "$root_dir/$template" >"$pkgdir/PKGBUILD.candidate"
+  }
+
+  render_package
+  if [[ $current_version == "$version" && -f $pkgdir/PKGBUILD ]] && ! cmp -s "$pkgdir/PKGBUILD.candidate" "$pkgdir/PKGBUILD"; then
+    package_release=$((current_release + 1))
+    render_package
+  fi
+  mv "$pkgdir/PKGBUILD.candidate" "$pkgdir/PKGBUILD"
+
+  (
+    cd "$pkgdir"
+    makepkg --printsrcinfo >.SRCINFO
+    makepkg --syncdeps --cleanbuild --clean --force --noconfirm
+    if [[ -z $(git status --short -- PKGBUILD .SRCINFO) ]]; then
+      printf '%s is already synchronized\n' "$pkgname"
+      return 0
+    fi
+    git add PKGBUILD .SRCINFO
+    if git rev-parse --verify HEAD >/dev/null 2>&1; then
+      commit_message="Update to ${version}-${package_release}"
+    else
+      commit_message='Initial import'
+    fi
+    git -c user.name='brmgen AUR Bot' -c user.email='actions@users.noreply.github.com' commit -m "$commit_message"
+    if [[ ${AUR_PUSH:-0} == 1 ]]; then
+      git push origin HEAD:master
+    fi
+  )
 }
 
-render_package
-if [[ $current_version == "$version" && -f $destination/PKGBUILD ]] && ! cmp -s "$destination/PKGBUILD.candidate" "$destination/PKGBUILD"; then
-  package_release=$((current_release + 1))
-  render_package
-fi
-mv "$destination/PKGBUILD.candidate" "$destination/PKGBUILD"
-
-(
-  cd "$destination"
-  makepkg --printsrcinfo >.SRCINFO
-  makepkg --syncdeps --cleanbuild --clean --force --noconfirm
-  if [[ -z $(git status --short -- PKGBUILD .SRCINFO) ]]; then
-    printf 'brmgen is already synchronized\n'
-    exit 0
-  fi
-  git add PKGBUILD .SRCINFO
-  if git rev-parse --verify HEAD >/dev/null 2>&1; then
-    commit_message="Update to ${version}-${package_release}"
-  else
-    commit_message='Initial import'
-  fi
-  git -c user.name='brmgen AUR Bot' -c user.email='actions@users.noreply.github.com' commit -m "$commit_message"
-  if [[ ${AUR_PUSH:-0} == 1 ]]; then
-    git push origin HEAD:master
-  fi
-)
+publish_package "brmgen" "$destination_root/brmgen" "packaging/aur/PKGBUILD.in" "$archive_sha256"
+publish_package "brmgen-gtk" "$destination_root/brmgen-gtk" "packaging/aur-gtk/PKGBUILD.in" "$gtk_archive_sha256"

@@ -5,3 +5,12 @@
 config.chc
 .idea/
 *.iml
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+brmgen-gtk/.venv/
+brmgen-gtk/dist/
+brmgen-gtk/build/
+brmgen-gtk/*.egg-info/

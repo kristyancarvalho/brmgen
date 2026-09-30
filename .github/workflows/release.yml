@@ -54,6 +54,21 @@ jobs:
         env:
           VERSION: ${{ steps.release.outputs.version }}
         run: sha256sum "brmgen-${VERSION}.tar" "brmgen-${VERSION}.zip" >SHA256SUMS
+      - name: Build GTK package
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Create GTK source tarball
+        env:
+          VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          cd brmgen-gtk
+          git archive --format=tar.gz --prefix=brmgen-gtk-${VERSION}/ -o ../build/distributions/brmgen-gtk-${VERSION}.tar.gz HEAD
+      - name: Generate GTK checksums
+        working-directory: build/distributions
+        env:
+          VERSION: ${{ steps.release.outputs.version }}
+        run: sha256sum "brmgen-gtk-${VERSION}.tar.gz" >>SHA256SUMS
       - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -62,6 +77,7 @@ jobs:
           assets=(
             "build/distributions/brmgen-${VERSION}.tar"
             "build/distributions/brmgen-${VERSION}.zip"
+            "build/distributions/brmgen-gtk-${VERSION}.tar.gz"
             "build/distributions/SHA256SUMS"
           )
           if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
