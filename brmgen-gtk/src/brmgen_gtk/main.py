@@ -12,6 +12,7 @@ from .backend import (
     build_model,
     run_doctor,
     get_version,
+    check_cli_available,
 )
 
 
@@ -24,8 +25,18 @@ class MainWindow(Gtk.ApplicationWindow):
         self.input_file = None
         self.output_file = None
         self.brmodelo_jar = None
+        self.cli_available = False
+        self.cli_version = ""
 
+        self._check_cli()
         self._build_ui()
+
+    def _check_cli(self):
+        self.cli_available, msg = check_cli_available()
+        if self.cli_available:
+            self.cli_version = msg
+        else:
+            self.cli_version = msg
 
     def _build_ui(self):
         header = Adw.HeaderBar()
@@ -45,6 +56,7 @@ class MainWindow(Gtk.ApplicationWindow):
         content.set_margin_end(12)
         toolbar.set_content(content)
 
+        self._build_cli_warning(content)
         self._build_files_section(content)
         self._add_separator(content)
         self._build_options_section(content)
@@ -58,6 +70,37 @@ class MainWindow(Gtk.ApplicationWindow):
         sep.set_margin_top(12)
         sep.set_margin_bottom(12)
         parent.append(sep)
+
+    def _build_cli_warning(self, parent):
+        if self.cli_available:
+            return
+        banner = Adw.Banner()
+        banner.set_title("brmgen CLI não encontrado")
+        banner.set_revealed(True)
+        banner.add_css_class("warning")
+        button = Gtk.Button(label="Saiba mais")
+        button.connect("clicked", self._on_cli_help)
+        banner.set_button(button)
+        banner.set_margin_bottom(12)
+        parent.append(banner)
+
+    def _on_cli_help(self, button):
+        dialog = Adw.MessageDialog(
+            transient_for=self,
+            heading="brmgen CLI não instalado",
+            body=(
+                "O brmgen-gtk requer o brmgen CLI para funcionar.\n\n"
+                "Instale via AUR:\n"
+                "  yay -S brmgen\n\n"
+                "Ou compile localmente:\n"
+                "  ./gradlew installDist\n\n"
+                f"Detalhes: {self.cli_version}"
+            ),
+        )
+        dialog.add_response("ok", "OK")
+        dialog.set_default_response("ok")
+        dialog.set_close_response("ok")
+        dialog.present()
 
     def _build_files_section(self, parent):
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
@@ -281,9 +324,10 @@ class MainWindow(Gtk.ApplicationWindow):
         self.output_buffer.set_text("")
 
     def _set_buttons_sensitive(self, sensitive: bool):
-        self.validate_btn.set_sensitive(sensitive)
-        self.build_btn.set_sensitive(sensitive)
-        self.doctor_btn.set_sensitive(sensitive)
+        enabled = sensitive and self.cli_available
+        self.validate_btn.set_sensitive(enabled)
+        self.build_btn.set_sensitive(enabled)
+        self.doctor_btn.set_sensitive(enabled)
 
     def _on_validate(self, button):
         if not self.input_file:
