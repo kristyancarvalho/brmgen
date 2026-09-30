@@ -104,10 +104,10 @@ class MainWindow(Gtk.ApplicationWindow):
         grid.attach(self.output_label, 2, row, 1, 1)
         row += 1
 
-        lbl = Gtk.Label(label="brModelo JAR (opcional):", xalign=0)
+        lbl = Gtk.Label(label="brModelo JAR (obrigatório para gerar):", xalign=0)
         grid.attach(lbl, 0, row, 1, 1)
         grid.attach(self.jar_button, 1, row, 1, 1)
-        self.jar_label = Gtk.Label(label="Usa BRMODELO_JAR do ambiente", xalign=0)
+        self.jar_label = Gtk.Label(label="Usa BRMODELO_JAR do ambiente ou selecione acima", xalign=0)
         self.jar_label.set_hexpand(True)
         grid.attach(self.jar_label, 2, row, 1, 1)
 
