@@ -41,18 +41,26 @@ check:
 clean:
 	./gradlew clean --no-daemon
 
+VENV = brmgen-gtk/.venv
+PYTHON = $(VENV)/bin/python
+PIP = $(VENV)/bin/pip
+
 # GTK targets
-gtk-build:
-	cd brmgen-gtk && pip install -e . --no-build-isolation
+$(VENV):
+	python3 -m venv $(VENV) --system-site-packages
+	$(PIP) install setuptools
 
-gtk-install:
-	cd brmgen-gtk && pip install -e ".[dev]" --no-build-isolation
+gtk-build: $(VENV)
+	$(PIP) install -e brmgen-gtk --no-build-isolation
 
-gtk-run:
-	cd brmgen-gtk && python -m brmgen_gtk
+gtk-install: $(VENV)
+	$(PIP) install -e "brmgen-gtk[dev]" --no-build-isolation
 
-gtk-test:
-	cd brmgen-gtk && python -m pytest
+gtk-run: gtk-build
+	$(VENV)/bin/brmgen-gtk
+
+gtk-test: gtk-install
+	$(PYTHON) -m pytest brmgen-gtk
 
 # Combined targets
 all: install gtk-install
