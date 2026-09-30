@@ -32,7 +32,19 @@ jobs:
     steps:
       - name: Prepare Arch environment
         run: |
-          pacman -Syu --noconfirm --needed git openssh curl jq jre21-openjdk python-gobject libadwaita
+          pacman -Syu --noconfirm --needed \
+            git \
+            openssh \
+            curl \
+            jq \
+            jre21-openjdk \
+            python \
+            python-gobject \
+            libadwaita \
+            python-build \
+            python-installer \
+            python-setuptools \
+            python-wheel
           useradd --create-home --uid 1000 aurbuilder
       - name: Resolve stable release
         id: release

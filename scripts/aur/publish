@@ -26,6 +26,7 @@ publish_package() {
   local pkgdir=$2
   local template=$3
   local archive_sha=$4
+  local build_with_nodeps=${5:-false}
 
   if [[ ! -d $pkgdir/.git ]]; then
     git clone "ssh://aur@aur.archlinux.org/${pkgname}.git" "$pkgdir"
@@ -59,15 +60,10 @@ publish_package() {
   (
     cd "$pkgdir"
     makepkg --printsrcinfo >.SRCINFO
-    makepkg --cleanbuild --clean --force --noconfirm
-    if [[ $pkgname == "brmgen-gtk" ]]; then
-      local brmgen_pkg="/home/aurbuilder/brmgen/brmgen-${version}-${package_release}-any.pkg.tar.zst"
-      if [[ -f $brmgen_pkg ]]; then
-        pacman -U --noconfirm "$brmgen_pkg"
-      else
-        # Install from AUR if local package not found
-        pacman -S --noconfirm --needed brmgen
-      fi
+    if [[ $build_with_nodeps == "true" ]]; then
+      makepkg --cleanbuild --clean --force --noconfirm --nodeps
+    else
+      makepkg --cleanbuild --clean --force --noconfirm
     fi
     if [[ -z $(git status --short -- PKGBUILD .SRCINFO) ]]; then
       printf '%s is already synchronized\n' "$pkgname"
@@ -86,5 +82,8 @@ publish_package() {
   )
 }
 
-publish_package "brmgen" "$destination_root/brmgen" "packaging/aur/PKGBUILD.in" "$archive_sha256"
-publish_package "brmgen-gtk" "$destination_root/brmgen-gtk" "packaging/aur-gtk/PKGBUILD.in" "$gtk_archive_sha256"
+# Build brmgen first (without nodeps, it's a Java project)
+publish_package "brmgen" "$destination_root/brmgen" "packaging/aur/PKGBUILD.in" "$archive_sha256" "false"
+
+# Build brmgen-gtk with --nodeps since its build() doesn't require brmgen at build time
+publish_package "brmgen-gtk" "$destination_root/brmgen-gtk" "packaging/aur-gtk/PKGBUILD.in" "$gtk_archive_sha256" "true"
