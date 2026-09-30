@@ -19,7 +19,7 @@ class MainWindow(Gtk.ApplicationWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.set_default_size(900, 650)
-        self.set_title("brmgen GTK")
+        self.set_title("BRMGen")
 
         self.input_file = None
         self.output_file = None
@@ -29,6 +29,7 @@ class MainWindow(Gtk.ApplicationWindow):
 
     def _build_ui(self):
         header = Adw.HeaderBar()
+        header.set_title_widget(Gtk.Label(label="BRMGen"))
         self.set_titlebar(header)
 
         main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
@@ -37,84 +38,119 @@ class MainWindow(Gtk.ApplicationWindow):
         toolbar = Adw.ToolbarView()
         main_box.append(toolbar)
 
-        content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+        content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
         content.set_margin_top(12)
         content.set_margin_bottom(12)
         content.set_margin_start(12)
         content.set_margin_end(12)
         toolbar.set_content(content)
 
-        self._build_file_section(content)
+        self._build_files_section(content)
+        self._add_separator(content)
         self._build_options_section(content)
-        self._build_action_buttons(content)
+        self._add_separator(content)
+        self._build_actions_section(content)
+        self._add_separator(content)
         self._build_output_section(content)
 
-    def _build_file_section(self, parent):
-        group = Adw.PreferencesGroup(title="Arquivos")
-        parent.append(group)
+    def _add_separator(self, parent):
+        sep = Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
+        sep.set_margin_top(12)
+        sep.set_margin_bottom(12)
+        parent.append(sep)
 
-        input_row = Adw.ActionRow(title="Arquivo de entrada (YAML/JSON)")
-        self.input_button = Gtk.Button(label="Selecionar...")
+    def _build_files_section(self, parent):
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+        box.set_margin_bottom(6)
+        parent.append(box)
+
+        title = Gtk.Label(label="Arquivos", xalign=0)
+        title.add_css_class("heading")
+        box.append(title)
+
+        grid = Gtk.Grid()
+        grid.set_row_spacing(8)
+        grid.set_column_spacing(12)
+        grid.set_margin_top(6)
+        box.append(grid)
+
+        self.input_button = Gtk.Button(label="Selecionar…")
         self.input_button.connect("clicked", self._on_select_input)
-        input_row.add_suffix(self.input_button)
-        input_row.set_activatable_widget(self.input_button)
-        group.add(input_row)
+        self.input_button.set_hexpand(False)
 
-        output_row = Adw.ActionRow(title="Arquivo de saída (.brM3)")
-        self.output_button = Gtk.Button(label="Selecionar...")
+        self.output_button = Gtk.Button(label="Selecionar…")
         self.output_button.connect("clicked", self._on_select_output)
-        output_row.add_suffix(self.output_button)
-        output_row.set_activatable_widget(self.output_button)
-        group.add(output_row)
+        self.output_button.set_hexpand(False)
 
-        jar_row = Adw.ActionRow(title="brModelo JAR (opcional)")
-        self.jar_button = Gtk.Button(label="Selecionar...")
+        self.jar_button = Gtk.Button(label="Selecionar…")
         self.jar_button.connect("clicked", self._on_select_jar)
-        jar_row.add_suffix(self.jar_button)
-        jar_row.set_activatable_widget(self.jar_button)
-        group.add(jar_row)
+        self.jar_button.set_hexpand(False)
 
-        self.input_label = Gtk.Label(label="Nenhum arquivo selecionado")
-        self.input_label.set_xalign(0)
-        self.input_label.set_margin_start(12)
-        self.input_label.set_margin_end(12)
-        self.input_label.set_margin_bottom(6)
-        parent.append(self.input_label)
+        row = 0
 
-        self.output_label = Gtk.Label(label="Padrão: ao lado do arquivo de entrada")
-        self.output_label.set_xalign(0)
-        self.output_label.set_margin_start(12)
-        self.output_label.set_margin_end(12)
-        self.output_label.set_margin_bottom(6)
-        parent.append(self.output_label)
+        lbl = Gtk.Label(label="Entrada (YAML/JSON):", xalign=0)
+        grid.attach(lbl, 0, row, 1, 1)
+        grid.attach(self.input_button, 1, row, 1, 1)
+        self.input_label = Gtk.Label(label="Nenhum arquivo selecionado", xalign=0)
+        self.input_label.set_hexpand(True)
+        grid.attach(self.input_label, 2, row, 1, 1)
+        row += 1
 
-        self.jar_label = Gtk.Label(label="Usa BRMODELO_JAR do ambiente ou --brmodelo-jar")
-        self.jar_label.set_xalign(0)
-        self.jar_label.set_margin_start(12)
-        self.jar_label.set_margin_end(12)
-        self.jar_label.set_margin_bottom(6)
-        parent.append(self.jar_label)
+        lbl = Gtk.Label(label="Saída (.brM3):", xalign=0)
+        grid.attach(lbl, 0, row, 1, 1)
+        grid.attach(self.output_button, 1, row, 1, 1)
+        self.output_label = Gtk.Label(label="Padrão: ao lado do arquivo de entrada", xalign=0)
+        self.output_label.set_hexpand(True)
+        grid.attach(self.output_label, 2, row, 1, 1)
+        row += 1
+
+        lbl = Gtk.Label(label="brModelo JAR (opcional):", xalign=0)
+        grid.attach(lbl, 0, row, 1, 1)
+        grid.attach(self.jar_button, 1, row, 1, 1)
+        self.jar_label = Gtk.Label(label="Usa BRMODELO_JAR do ambiente", xalign=0)
+        self.jar_label.set_hexpand(True)
+        grid.attach(self.jar_label, 2, row, 1, 1)
+
+        grid.set_column_homogeneous(False)
+        grid.set_column_spacing(12)
 
     def _build_options_section(self, parent):
-        group = Adw.PreferencesGroup(title="Opções")
-        parent.append(group)
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+        box.set_margin_bottom(6)
+        parent.append(box)
+
+        title = Gtk.Label(label="Opções", xalign=0)
+        title.add_css_class("heading")
+        box.append(title)
+
+        grid = Gtk.Grid()
+        grid.set_row_spacing(8)
+        grid.set_column_spacing(12)
+        grid.set_margin_top(6)
+        box.append(grid)
 
         self.logical_switch = Gtk.Switch()
         self.logical_switch.set_valign(Gtk.Align.CENTER)
-        logical_row = Adw.ActionRow(title="Gerar modelo lógico", subtitle="Transforma conceitual para lógico")
-        logical_row.add_suffix(self.logical_switch)
-        group.add(logical_row)
+        lbl = Gtk.Label(label="Gerar modelo lógico", xalign=0)
+        sub = Gtk.Label(label="Transforma conceitual para lógico", xalign=0)
+        sub.add_css_class("dim-label")
+        grid.attach(lbl, 0, 0, 1, 1)
+        grid.attach(sub, 0, 1, 1, 1)
+        grid.attach(self.logical_switch, 1, 0, 1, 2)
 
         self.force_switch = Gtk.Switch()
         self.force_switch.set_valign(Gtk.Align.CENTER)
-        force_row = Adw.ActionRow(title="Sobrescrever saída", subtitle="Força sobrescrita se arquivo existir")
-        force_row.add_suffix(self.force_switch)
-        group.add(force_row)
+        lbl = Gtk.Label(label="Sobrescrever saída", xalign=0)
+        sub = Gtk.Label(label="Força sobrescrita se arquivo existir", xalign=0)
+        sub.add_css_class("dim-label")
+        grid.attach(lbl, 0, 2, 1, 1)
+        grid.attach(sub, 0, 3, 1, 1)
+        grid.attach(self.force_switch, 1, 2, 1, 2)
 
-    def _build_action_buttons(self, parent):
-        box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
+    def _build_actions_section(self, parent):
+        box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
         box.set_margin_top(6)
-        box.set_halign(Gtk.Align.CENTER)
+        box.set_margin_bottom(6)
         parent.append(box)
 
         self.validate_btn = Gtk.Button(label="Validar")
@@ -131,20 +167,32 @@ class MainWindow(Gtk.ApplicationWindow):
         self.doctor_btn.connect("clicked", self._on_doctor)
         box.append(self.doctor_btn)
 
+        spacer = Gtk.Box()
+        spacer.set_hexpand(True)
+        box.append(spacer)
+
     def _build_output_section(self, parent):
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        box.set_vexpand(True)
+        parent.append(box)
+
+        title = Gtk.Label(label="Saída", xalign=0)
+        title.add_css_class("heading")
+        box.append(title)
+
         scrolled = Gtk.ScrolledWindow()
         scrolled.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         scrolled.set_vexpand(True)
-        scrolled.set_min_content_height(200)
-        parent.append(scrolled)
+        scrolled.set_min_content_height(220)
+        box.append(scrolled)
 
         self.output_text = Gtk.TextView()
         self.output_text.set_editable(False)
         self.output_text.set_monospace(True)
         self.output_text.set_top_margin(6)
         self.output_text.set_bottom_margin(6)
-        self.output_text.set_left_margin(6)
-        self.output_text.set_right_margin(6)
+        self.output_text.set_left_margin(8)
+        self.output_text.set_right_margin(8)
         scrolled.set_child(self.output_text)
 
         self.output_buffer = self.output_text.get_buffer()
