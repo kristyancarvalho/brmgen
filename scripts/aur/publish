@@ -59,6 +59,13 @@ publish_package() {
   (
     cd "$pkgdir"
     makepkg --printsrcinfo >.SRCINFO
+    if [[ $pkgname == "brmgen-gtk" ]]; then
+      # Install brmgen locally first since it was just published
+      local brmgen_pkg="/home/aurbuilder/brmgen/brmgen-${version}-${package_release}-any.pkg.tar.zst"
+      if [[ -f $brmgen_pkg ]]; then
+        pacman -U --noconfirm "$brmgen_pkg"
+      fi
+    fi
     makepkg --syncdeps --cleanbuild --clean --force --noconfirm
     if [[ -z $(git status --short -- PKGBUILD .SRCINFO) ]]; then
       printf '%s is already synchronized\n' "$pkgname"
