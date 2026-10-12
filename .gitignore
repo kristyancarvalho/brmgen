@@ -1,6 +1,7 @@
 /specs/
 /.gradle/
 /build/
+/builddir/
 *.brM3
 config.chc
 .idea/
