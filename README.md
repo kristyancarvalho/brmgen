@@ -224,6 +224,31 @@ brModelo is a separate GPL-3.0 project. Its source and binaries are not part of,
 
 ## Development and Testing
 
+Install Meson, Ninja, Java 21, Python 3, and the GTK development dependencies required by the interface. Meson provides the local task interface, while the Java CLI continues to use the Gradle Wrapper:
+
+```bash
+meson setup builddir
+meson compile -C builddir help
+meson compile -C builddir java-build
+meson compile -C builddir gtk-run
+```
+
+| Meson target | Purpose |
+| --- | --- |
+| `java-build` | Build and test the Java application distribution |
+| `java-install` | Create the local Java application installation |
+| `java-test` | Run Java unit tests |
+| `java-integration` | Run tests requiring `BRMODELO_JAR` |
+| `java-check` | Run Gradle verification checks |
+| `java-clean` | Clean Gradle build outputs |
+| `gtk-build` | Install the GTK application in its development environment |
+| `gtk-install` | Install the GTK application and development dependencies |
+| `gtk-run` | Start the GTK application |
+| `gtk-test` | Run GTK package tests |
+| `setup-all`, `dev` | Prepare the local Java and GTK development environment |
+
+Run any task with `meson compile -C builddir <target>`. Gradle commands remain available directly:
+
 | Command | Purpose |
 | --- | --- |
 | `./gradlew test` | Run unit and regular integration-facing tests |
@@ -242,6 +267,7 @@ Native integration tests deserialize only files generated inside the test run. T
 | `examples/` | Representative conceptual and logical definitions |
 | `packaging/` | Arch Linux and AUR package definitions |
 | `scripts/` | Release-package synchronization utilities |
+| `meson.build` | Local development task definitions |
 | `src/main/` | Application source code |
 | `src/test/` | Unit and regular integration-facing tests |
 | `src/integrationTest/` | Tests requiring an explicitly supplied brModelo JAR |
